@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazocious.Test", "src\Blazocious.Test\Blazocious.Test.csproj", "{1C1F52BB-E743-3F2D-AE87-1FF591C9C1C5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Blazocious", "src\Blazocious\Blazocious.csproj", "{53893E98-D73B-88A5-0A43-6232BDA3CD95}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1C1F52BB-E743-3F2D-AE87-1FF591C9C1C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C1F52BB-E743-3F2D-AE87-1FF591C9C1C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C1F52BB-E743-3F2D-AE87-1FF591C9C1C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C1F52BB-E743-3F2D-AE87-1FF591C9C1C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53893E98-D73B-88A5-0A43-6232BDA3CD95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53893E98-D73B-88A5-0A43-6232BDA3CD95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53893E98-D73B-88A5-0A43-6232BDA3CD95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53893E98-D73B-88A5-0A43-6232BDA3CD95}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {732CDE1E-0BB9-41E7-B059-2B064446AB9D}
+	EndGlobalSection
+EndGlobal
