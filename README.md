@@ -1,5 +1,6 @@
+# 🚀 **Blazocious**
 
-# 🚀 **Blazocious** – A Semantic UI Framework for Blazor
+A semantic-first, builder-based UI framework for Blazor that lets you compose UIs with pure C# logic.
 
 ## 🧩 Key Concept
 
@@ -7,162 +8,201 @@
 
 Instead of wiring up UI with repetitive markup or scattered logic, you define the **intent** of content — like a `Header`, `Body`, or `Footer` — and let Blazocious handle **decoration, styling, and rendering**.
 
-This pattern separates **what** the UI *means* from **how** it *looks* or *behaves* — a clean break between **structure and meaning**, much like HTML5 did with semantic tags.
+This pattern separates **what** the UI *means* from **how** it *looks* or *behaves* — a clean break between **structure and meaning**.
 
----
+> "Compose. Cache. Control. Without compromise."
 
-## 🧱 Declarative AST Representation
+## ✨ Features
 
-Blazocious models UI as a tree of **semantic nodes**:
+- ✅ **ElementBuilder**: Fluent, type-safe DOM building API
+- 🔥 **Semantic Builders**: Components like `Card`, `Select`, `Layout`, `Notification`
+- 🎯 **Smart Caching**: Memory caching for expensive or frequently-used fragments
+- 🧩 **Composition**: Nest and arrange semantic components with ease
+- 🎨 **Theming**: Apply reusable visual themes across your app
+- ⚡ **Performance**: Built-in debouncing, throttling, and state management
 
+## 🌟 Quick Examples
+
+### Element Building
 ```csharp
-abstract record UiNode;
-
-record ContentNode(string Role, UiNode Child) : UiNode; // Roles: "header", "body", "footer", "actions"
-record TextNode(string Text) : UiNode;
-record ElementNode(string Tag, Dictionary<string, object> Attributes, List<UiNode> Children) : UiNode;
+Element.Div("card")
+    .ClassIf("active", isActive)
+    .StyleObject(new { 
+        BackgroundColor = isDark ? "#000" : "#fff",
+        Padding = "1rem"
+    })
+    .Child(Element.H2().Text("Hello from Blazocious"))
+    .Child(Element.Paragraph().Text("This is a card"))
+    .Build()(builder);
 ```
 
-This structure allows for **render-time transformation**, decoration, and optimization.
-
----
-
-## ✨ Composing and Decorating Content
-
-Start with raw, meaningful content blocks:
-
+### Semantic Components
 ```csharp
-var contentAst = new List<UiNode>
+new CardBuilder(new CardData 
 {
-    new ContentNode("header", new TextNode("My Card Title")),
-    new ContentNode("body", new TextNode("Main content goes here.")),
-    new ContentNode("footer", new TextNode("Footer actions or links"))
-};
+    Title = "Welcome",
+    Content = "This is a semantic card"
+})
+.WithOptions(new CardOptions 
+{
+    Interactive = true,
+    Cache = new CacheOptions { Duration = TimeSpan.FromMinutes(5) }
+})
+.Build()(builder);
 ```
 
-Then apply a `DecorateCard` function to wrap each semantic block with layout and style:
+### Form Building
+```csharp
+Element.Form("login-form")
+    .OnChangeDebounced(300, HandleChange)
+    .WithState(_formState)
+    .Child(
+        Element.Input()
+            .Attr("type", "email")
+            .OnInputThrottled(100, HandleInput)
+    )
+    .Build()(builder);
+```
+
+## 🔥 Core Features
+
+### ElementBuilder
+- Conditional classes with `.ClassIf()` and `.ClassWhen()`
+- Element references with `.CaptureRef()` and `.OnMounted()`
+- Debounced events with `.OnChangeDebounced()` and `.OnInputThrottled()`
+- State management with `.WithState()` and `.OnUpdate()`
+- CSS-in-JS with `.StyleObject()`
+
+### Semantic Builders
+- Type-safe data and options
+- Built-in caching strategies
+- Theme support
+- Event handling
+- Composition patterns
+
+### Smart Caching
+```csharp
+protected override string ComputeCacheKey() =>
+    $"card|{Data.Id}|{Options.Interactive}|{Theme?.Name}";
+```
+
+## 🧱 Architecture
+
+Blazocious is built on three key patterns:
+
+1. **Builder Pattern**: Fluent APIs for building UI
+2. **Semantic Model**: Content-first approach to UI
+3. **Component AST**: Tree-based view composition
+
+## 🧩 Extending Blazocious with Custom Semantic Builders
+
+One of the most powerful aspects of **Blazocious** is that you can easily **create your own semantic components** by inheriting from the base builder:
 
 ```csharp
-UiNode DecorateCard(List<UiNode> contentNodes)
+public abstract class SemanticBuilder<TOptions, TData>
 {
-    var children = contentNodes.Select(n =>
+    protected TData Data { get; }
+    protected TOptions Options { get; private set; }
+
+    public RenderFragment Build();
+    protected abstract string GenerateCacheKeyString();
+    protected abstract RenderFragment CreateFragment();
+}
+```
+
+### Example: Custom `NotificationBuilder`
+
+```csharp
+public record NotificationOptions
+{
+    public string Type { get; init; } = "info";
+    public bool Dismissible { get; init; } = true;
+    public CacheOptions? Cache { get; init; }
+}
+
+public class NotificationBuilder : SemanticBuilder<NotificationOptions, string>
+{
+    public NotificationBuilder(string message) : base(message) { }
+
+    protected override string GenerateCacheKeyString() =>
+        $"{Options.Type}|{Options.Dismissible}|{Data}";
+
+    protected override CacheOptions? GetCacheOptions() => Options.Cache;
+
+    protected override RenderFragment CreateFragment() => builder =>
     {
-        return n switch
-        {
-            ContentNode { Role: "header" } => new ElementNode("div",
-                new() { ["class"] = "meritocious-card-header" },
-                new() { n.Child }),
-
-            ContentNode { Role: "body" } => new ElementNode("div",
-                new() { ["class"] = "meritocious-card-body" },
-                new() { n.Child }),
-
-            ContentNode { Role: "footer" } => new ElementNode("div",
-                new() { ["class"] = "meritocious-card-footer" },
-                new() { n.Child }),
-
-            _ => n
-        };
-    }).ToList();
-
-    return new ElementNode("div",
-        new() { ["class"] = "meritocious-card meritocious-card-interactive" },
-        children
-    );
+        Element.Div($"blz-notification blz-notification-{Options.Type}")
+            .Child(Element.Text(Data)) // Data is the message body
+            .If(Options.Dismissible, el =>
+                el.Child(
+                    Element.Button()
+                        .Class("dismiss")
+                        .Text("×")
+                )
+            )
+            .Build()(builder);
+    };
 }
 ```
 
----
+### Use it like:
 
-## 🎨 Default Card Styles
+```csharp
+new NotificationBuilder("Something went wrong.")
+    .WithOptions(new NotificationOptions
+    {
+        Type = "error",
+        Dismissible = true,
+        Cache = new CacheOptions { Duration = TimeSpan.FromMinutes(1) }
+    })
+    .Build()(builder);
+```
 
-```css
-.meritocious-card {
-    backdrop-filter: blur(8px);
-    border-radius: var(--meritocious-radius-lg);
-    overflow: hidden;
-    transition: var(--meritocious-transition);
-    max-width: 72rem;
-    margin-left: auto;
-    margin-right: auto;
-}
+## 📦 Getting Started
 
-.meritocious-card-body {
-    background-color: rgba(31, 41, 55, 0.5);
-    backdrop-filter: blur(4px);
-    border-radius: 0.5rem;
-    padding: 2rem;
-    border: 1px solid rgba(55, 65, 81, 0.5);
-    margin-bottom: 2rem;
-}
+1. Install the NuGet package:
+```bash
+dotnet add package Blazocious
+```
 
-.meritocious-card-content {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-    padding: var(--meritocious-spacing-md);
-}
+2. Add services in `Program.cs`:
+```csharp
+builder.Services.AddBlazocious();
+```
 
-.meritocious-card-interactive {
-    cursor: pointer;
-}
-
-.meritocious-card-interactive:hover {
-    border-color: rgba(45, 212, 191, 0.3);
-}
-
-.meritocious-card-header {
-    border-bottom: 1px solid var(--meritocious-border);
-}
-
-.meritocious-card-header h3 {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
-    font-weight: 700;
-}
-
-.meritocious-card-footer {
-    padding: var(--meritocious-spacing-md);
-    border-top: 1px solid var(--meritocious-border);
+3. Start building semantic UI:
+```csharp
+public class WelcomePage : ComponentBase
+{
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        Element.Div("welcome-container")
+            .Child(Element.H1("Welcome to Blazocious"))
+            .Child(
+                new CardBuilder(new CardData { ... })
+                    .WithOptions(new CardOptions { ... })
+                    .Build()
+            )
+            .Build()(builder);
+    }
 }
 ```
 
----
+## 🧪 Best Practices
 
-## ⚡ Performance Features
+1. **Use Semantic Builders** for high-level components
+2. **Use ElementBuilder** for custom layouts and simple components
+3. **Leverage Caching** for expensive renders
+4. **Apply Themes** consistently
+5. **Compose** instead of duplicating
 
-Blazocious supports **caching**, **memoization**, and **background revalidation** with:
+## 🔮 Coming Soon
 
-- `CardOptions.Cache` for per-instance control
-- Content-aware `SHA256` cache keys
-- `PreferStale` option for smooth UX during background refresh
-- Pre-rendered templates (e.g. loading states, empty cards)
-
----
-
-## 🧠 Benefits
-
-- ✅ **Semantic-first UI** — write what you mean, not what it looks like
-- ✅ **Encapsulated design** — centralized layout + style logic
-- ✅ **Composable decorations** — consistent, layered transformations
-- ✅ **Declarative + imperative flexibility**
-- ✅ **Performant by default** — caching, precomputed fragments
-- ✅ **Testable AST structure** — great for snapshot, structural, or integration testing
-
----
-
-## 🔮 Future Ideas for Blazocious
-
-- `SlotNode("actions")` for flexible insertion points
-- Layout composition: rows, columns, grids via AST
-- JSON / C# DSL-driven UI schema
-- Theming + design tokens support
-- Component registry: reusable templates (e.g. `<Blazocious.InfoCard>`)
-- Designer tool integration / visual schema builder
-- Server-side rendering + hydration-aware cache layer
-
----
+- Form validation integration
+- Animation support
+- Portal system
+- More semantic components
+- Designer tools
 
 ## 💥 Summary
 
@@ -170,3 +210,15 @@ Blazocious supports **caching**, **memoization**, and **background revalidation*
 
 It’s not just a UI library — it’s a **UI engine**.  
 Built on semantics. Tuned for performance. Ready for scale.
+
+---
+
+## 🧡 License
+
+MIT — free to use and extend.
+
+---
+
+> Made with love, by developers who believe UI should be fun again.
+
+
