@@ -94,6 +94,73 @@ Blazocious is built on three key patterns:
 2. **Semantic Model**: Content-first approach to UI
 3. **Component AST**: Tree-based view composition
 
+## 🧩 Extending Blazocious with Custom Semantic Builders
+
+One of the most powerful aspects of **Blazocious** is that you can easily **create your own semantic components** by inheriting from the base builder:
+
+```csharp
+public abstract class SemanticBuilder<TOptions, TData>
+{
+    protected TData Data { get; }
+    protected TOptions Options { get; private set; }
+
+    public RenderFragment Build();
+    protected abstract string GenerateCacheKeyString();
+    protected abstract RenderFragment CreateFragment();
+}
+```
+
+### Example: Custom `NotificationBuilder`
+
+```csharp
+public record NotificationOptions
+{
+    public string Type { get; init; } = "info";
+    public bool Dismissible { get; init; } = true;
+    public CacheOptions? Cache { get; init; }
+}
+
+public class NotificationBuilder : SemanticBuilder<NotificationOptions, string>
+{
+    public NotificationBuilder(string message) : base(message) { }
+
+    protected override string GenerateCacheKeyString() =>
+        $"{Options.Type}|{Options.Dismissible}|{Data}";
+
+    protected override CacheOptions? GetCacheOptions() => Options.Cache;
+
+    protected override RenderFragment CreateFragment() => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", $"blz-notification {Options.Type}");
+        builder.AddContent(2, Data);
+
+        if (Options.Dismissible)
+        {
+            builder.OpenElement(3, "button");
+            builder.AddAttribute(4, "class", "dismiss");
+            builder.AddContent(5, "×");
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+}
+```
+
+### Use it like:
+
+```csharp
+new NotificationBuilder("Something went wrong.")
+    .WithOptions(new NotificationOptions
+    {
+        Type = "error",
+        Dismissible = true,
+        Cache = new CacheOptions { Duration = TimeSpan.FromMinutes(1) }
+    })
+    .Build()(builder);
+```
+
 ## 📦 Getting Started
 
 1. Install the NuGet package:
