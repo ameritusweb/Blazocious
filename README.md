@@ -131,19 +131,16 @@ public class NotificationBuilder : SemanticBuilder<NotificationOptions, string>
 
     protected override RenderFragment CreateFragment() => builder =>
     {
-        builder.OpenElement(0, "div");
-        builder.AddAttribute(1, "class", $"blz-notification {Options.Type}");
-        builder.AddContent(2, Data);
-
-        if (Options.Dismissible)
-        {
-            builder.OpenElement(3, "button");
-            builder.AddAttribute(4, "class", "dismiss");
-            builder.AddContent(5, "×");
-            builder.CloseElement();
-        }
-
-        builder.CloseElement();
+        Element.Div($"blz-notification blz-notification-{Options.Type}")
+            .Child(Element.Text(Data)) // Data is the message body
+            .If(Options.Dismissible, el =>
+                el.Child(
+                    Element.Button()
+                        .Class("dismiss")
+                        .Text("×")
+                )
+            )
+            .Build()(builder);
     };
 }
 ```
