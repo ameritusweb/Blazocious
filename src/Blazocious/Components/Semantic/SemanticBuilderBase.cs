@@ -18,29 +18,29 @@ namespace Blazocious.Components.Semantic
 
         protected TData Data { get; }
         protected TOptions Options { get; private set; } = new();
-        protected ThemeContext? Theme { get; private set; }
+        protected SemanticThemeContext? Theme { get; private set; }
 
         private string? _cacheKey;
         private Action<RenderTreeBuilder>? _customizer;
 
-        protected SemanticBuilder(TData data)
+        protected SemanticBuilderBase(TData data)
         {
             Data = data ?? throw new ArgumentNullException(nameof(data));
         }
 
-        public SemanticBuilder<TData, TOptions> WithOptions(TOptions options)
+        public SemanticBuilderBase<TData, TOptions> WithOptions(TOptions options)
         {
             Options = options ?? new TOptions();
             return this;
         }
 
-        public SemanticBuilder<TData, TOptions> WithTheme(ThemeContext theme)
+        public SemanticBuilderBase<TData, TOptions> WithTheme(SemanticThemeContext theme)
         {
             Theme = theme;
             return this;
         }
 
-        public SemanticBuilder<TData, TOptions> WithCustomizer(Action<RenderTreeBuilder> customizer)
+        public SemanticBuilderBase<TData, TOptions> WithCustomizer(Action<RenderTreeBuilder> customizer)
         {
             _customizer = customizer;
             return this;
