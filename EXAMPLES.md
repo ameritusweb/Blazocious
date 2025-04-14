@@ -349,8 +349,9 @@ components:
     states:
       disabled:
         class: "opacity-50 cursor-not-allowed"
-🔹 2. Card With Header, Body, Variant, and Tokens
 ```
+
+🔹 2. Card With Header, Body, Variant, and Tokens
 
 ```csharp
 
