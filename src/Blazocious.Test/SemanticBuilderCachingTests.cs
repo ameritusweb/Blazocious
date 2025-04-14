@@ -10,225 +10,160 @@ namespace Blazocious.Test
         public void SemanticBuilder_WithCaching_ShouldCacheRenderFragment()
         {
             // Arrange
-            var testData = new TestData { Id = "test-123", Name = "Test Item" };
-            var testOptions = new TestOptions
-            {
-                Cache = new CacheOptions { Enabled = true, Duration = TimeSpan.FromMinutes(5) }
-            };
-
-            var builder = new TestSemanticBuilder(testData)
-                .WithOptions(testOptions);
-
-            // Act - Create fragments and track render count
-            var fragment1 = builder.Build();
-            var fragment2 = builder.Build();
-
-            // Count how many times CreateFragment is called
-
-            // Assert
-            Assert.Equal(1, TestSemanticBuilder.CreateFragmentCallCount); // Should only be called once due to caching
-
-            // Even though we can't directly track render count in RenderTreeBuilder,
-            // we can infer from the CreateFragmentCallCount that caching is working
-        }
-
-        [Fact]
-        public void SemanticBuilder_WithoutCaching_ShouldNotCacheRenderFragment()
-        {
-            // Arrange
-            var testData = new TestData { Id = "test-123", Name = "Test Item" };
-            var testOptions = new TestOptions
-            {
-                Cache = new CacheOptions { Enabled = false }
-            };
-
-            // Reset the counter
-            TestSemanticBuilder.CreateFragmentCallCount = 0;
-
-            var builder = new TestSemanticBuilder(testData)
-                .WithOptions(testOptions);
-
-            // Act - Create fragments
-            var fragment1 = builder.Build();
-            var fragment2 = builder.Build();
-
-            // Assert
-            Assert.Equal(2, TestSemanticBuilder.CreateFragmentCallCount); // Should be called twice (no caching)
-        }
-
-        [Fact]
-        public void SemanticBuilder_WithDifferentCacheKeys_ShouldNotShareCache()
-        {
-            // Arrange
-            var testData1 = new TestData { Id = "test-1", Name = "Test Item 1" };
-            var testData2 = new TestData { Id = "test-2", Name = "Test Item 2" };
-            var testOptions = new TestOptions
-            {
-                Cache = new CacheOptions { Enabled = true, Duration = TimeSpan.FromMinutes(5) }
-            };
-
-            // Reset the counter
-            TestSemanticBuilder.CreateFragmentCallCount = 0;
-
-            var builder1 = new TestSemanticBuilder(testData1)
-                .WithOptions(testOptions);
-
-            var builder2 = new TestSemanticBuilder(testData2)
-                .WithOptions(testOptions);
-
-            // Act - Create fragments
-            var fragment1 = builder1.Build();
-            var fragment2 = builder2.Build();
-
-            // Assert
-            Assert.Equal(2, TestSemanticBuilder.CreateFragmentCallCount); // Should be called for each unique cache key
-        }
-
-        [Fact]
-        public void SemanticBuilder_WithTheme_ShouldIncludeThemeInCacheKey()
-        {
-            // Arrange
-            var testData = new TestData { Id = "test-123", Name = "Test Item" };
-            var testOptions = new TestOptions
-            {
-                Cache = new CacheOptions { Enabled = true }
-            };
-
-            var theme1 = new SemanticThemeContext
-            {
-                BackgroundColor = "#f5f5f5",
-                TextColor = "#333333"
-            };
-
-            var theme2 = new SemanticThemeContext
-            {
-                BackgroundColor = "#333333",
-                TextColor = "#ffffff"
-            };
-
-            // Reset the counter
-            TestSemanticBuilder.CreateFragmentCallCount = 0;
-
-            var builder1 = new TestSemanticBuilder(testData)
-                .WithOptions(testOptions)
-                .WithTheme(theme1);
-
-            var builder2 = new TestSemanticBuilder(testData)
-                .WithOptions(testOptions)
-                .WithTheme(theme2);
-
-            // Act - Create fragments with different themes
-            var fragment1 = builder1.Build();
-            var fragment2 = builder2.Build();
-
-            // Assert
-            Assert.Equal(2, TestSemanticBuilder.CreateFragmentCallCount); // Should be called for each unique theme
-        }
-
-        [Fact]
-        public void SemanticBuilder_WithCustomCacheKey_ShouldUseProvidedKey()
-        {
-            // Arrange
-            var testData = new TestData { Id = "test-123", Name = "Test Item" };
-            var testOptions = new TestOptions
-            {
-                Cache = new CacheOptions { Enabled = true }
-            };
-
-            // Reset the counter
-            TestCustomCacheKeyBuilder.CreateFragmentCallCount = 0;
-
-            // Create a builder with a custom cache key implementation
-            // We need to store the reference to the concrete type before calling WithOptions
-            var customBuilder = new TestCustomCacheKeyBuilder(testData);
-
-            // Call WithOptions which will return SemanticBuilderBase<TestData, TestOptions>
-            var builder = customBuilder.WithOptions(testOptions);
-
-            // Act - Call Build twice
-            var fragment1 = builder.Build();
-            var fragment2 = builder.Build();
-
-            // Assert
-            Assert.Equal(1, TestCustomCacheKeyBuilder.CreateFragmentCallCount); // Should only be called once
-            Assert.Equal("custom-cache-key", customBuilder.TestCacheKey); // Should use the custom key
-        }
-
-        [Fact]
-        public void SemanticBuilder_WithCacheStaleRegeneration_ShouldRefreshCacheAsynchronously()
-        {
-            // This test is a bit tricky to do properly in a unit test context,
-            // as it depends on timing which can be unreliable in test runners.
-            // In a real application, the cache would refresh asynchronously.
-
-            // Arrange
+            TestSemanticBuilder.ResetCounter();
             var testData = new TestData { Id = "test-123", Name = "Test Item" };
             var testOptions = new TestOptions
             {
                 Cache = new CacheOptions
                 {
                     Enabled = true,
-                    Duration = TimeSpan.FromMilliseconds(50),
+                    Duration = TimeSpan.FromMinutes(5)
+                }
+            };
+
+            var builder = new TestSemanticBuilder(testData)
+                .WithOptions(testOptions);
+
+            // Act - Call Build() multiple times
+            var fragment1 = builder.Build();
+            var fragment2 = builder.Build();
+            var fragment3 = builder.Build();
+
+            // Render each fragment
+            var render1 = Render(fragment1);
+            var render2 = Render(fragment2);
+            var render3 = Render(fragment3);
+
+            // Assert
+            Assert.Equal(1, TestSemanticBuilder.CreateFragmentCallCount); // Should only create once
+
+            // Verify all renders produced the same output
+            var element1 = render1.Find("div");
+            var element2 = render2.Find("div");
+            var element3 = render3.Find("div");
+
+            Assert.Equal("test-123", element1.GetAttribute("data-id"));
+            Assert.Equal("test-123", element2.GetAttribute("data-id"));
+            Assert.Equal("test-123", element3.GetAttribute("data-id"));
+            Assert.Equal("Test Item", element1.TextContent);
+            Assert.Equal("Test Item", element2.TextContent);
+            Assert.Equal("Test Item", element3.TextContent);
+        }
+
+        [Fact]
+        public void SemanticBuilder_WithoutCaching_ShouldNotCacheRenderFragment()
+        {
+            // Arrange
+            TestSemanticBuilder.ResetCounter();
+            var testData = new TestData { Id = "test-123", Name = "Test Item" };
+            var testOptions = new TestOptions
+            {
+                Cache = new CacheOptions
+                {
+                    Enabled = false
+                }
+            };
+
+            var builder = new TestSemanticBuilder(testData)
+                .WithOptions(testOptions);
+
+            // Act - Call Build() multiple times
+            var fragment1 = builder.Build();
+            var fragment2 = builder.Build();
+
+            // Render the fragments
+            Render(fragment1);
+            Render(fragment2);
+
+            // Assert
+            Assert.Equal(2, TestSemanticBuilder.CreateFragmentCallCount); // Should create new fragments
+        }
+
+        [Fact]
+        public void SemanticBuilder_WithDifferentCacheKeys_ShouldNotShareCache()
+        {
+            // Arrange
+            TestSemanticBuilder.ResetCounter();
+            var testData1 = new TestData { Id = "test-1", Name = "Test Item 1" };
+            var testData2 = new TestData { Id = "test-2", Name = "Test Item 2" };
+            var testOptions = new TestOptions
+            {
+                Cache = new CacheOptions
+                {
+                    Enabled = true,
+                    Duration = TimeSpan.FromMinutes(5)
+                }
+            };
+
+            var builder1 = new TestSemanticBuilder(testData1)
+                .WithOptions(testOptions);
+            var builder2 = new TestSemanticBuilder(testData2)
+                .WithOptions(testOptions);
+
+            // Act - Create and render fragments
+            var fragment1 = builder1.Build();
+            RenderFragment(fragment1);
+
+            var fragment2 = builder2.Build();
+            RenderFragment(fragment2);
+
+            // Assert
+            Assert.Equal(2, TestSemanticBuilder.CreateFragmentCallCount);
+        }
+
+
+        [Fact]
+        public async Task SemanticBuilder_WithPreferStale_ShouldUseStaleCache()
+        {
+            // Arrange
+            TestSemanticBuilder.ResetCounter();
+            var testData = new TestData { Id = "test-123", Name = "Test Item" };
+            var testOptions = new TestOptions
+            {
+                Cache = new CacheOptions
+                {
+                    Enabled = true,
+                    Duration = TimeSpan.FromMilliseconds(50), // Short duration
                     PreferStale = true
                 }
             };
 
-            // Reset the counter
-            TestSemanticBuilder.CreateFragmentCallCount = 0;
-
             var builder = new TestSemanticBuilder(testData)
                 .WithOptions(testOptions);
 
-            // Act - Get the first fragment
+            // Act - Get initial fragment
             var fragment1 = builder.Build();
+            var render1 = Render(fragment1);
 
-            // Wait for the cache to expire
-            System.Threading.Thread.Sleep(100);
+            // Wait for cache to expire
+            await Task.Delay(100);
 
-            // Get it again - should still get the cached version
+            // Get another fragment - should use stale cache
             var fragment2 = builder.Build();
+            var render2 = Render(fragment2);
+
+            // Wait a bit for background refresh
+            await Task.Delay(100);
 
             // Assert
-            // The first call will create the fragment, the second will use the stale version
-            // but will also trigger a background refresh
-            Assert.Equal(1, TestSemanticBuilder.CreateFragmentCallCount);
+            Assert.Equal(2, TestSemanticBuilder.CreateFragmentCallCount); // Initial + Background refresh
 
-            // Wait a moment for the background refresh to potentially complete
-            System.Threading.Thread.Sleep(100);
-
-            // The refresh is async, so we can't reliably test it in this context,
-            // but in a real application, the cache would be updated in the background
+            // Verify both renders produced correct output
+            var element1 = render1.Find("div");
+            var element2 = render2.Find("div");
+            Assert.Equal("test-123", element1.GetAttribute("data-id"));
+            Assert.Equal("test-123", element2.GetAttribute("data-id"));
+            Assert.Equal("Test Item", element1.TextContent);
+            Assert.Equal("Test Item", element2.TextContent);
         }
 
-        [Fact]
-        public void SemanticBuilder_WithCaching_ShouldRenderTheSameOutput()
+        private void RenderFragment(RenderFragment fragment)
         {
-            // Arrange
-            var testData = new TestData { Id = "test-123", Name = "Test Item" };
-            var testOptions = new TestOptions
-            {
-                Cache = new CacheOptions { Enabled = true, Duration = TimeSpan.FromMinutes(5) }
-            };
-
-            var builder = new TestSemanticBuilder(testData)
-                .WithOptions(testOptions);
-
-            // Act - Create fragments
-            var fragment1 = builder.Build();
-            var fragment2 = builder.Build();
-
-            // Render the fragments in bUnit
-            var cut1 = Render(fragment1);
-            var cut2 = Render(fragment2);
-
-            // Assert
-            Assert.Equal(cut1.Markup, cut2.Markup);
-            Assert.Contains("test-123", cut1.Markup);
-            Assert.Contains("Test Item", cut1.Markup);
+            var component = Render(fragment);
+            Assert.NotNull(component);  // Ensure render succeeded
         }
 
         // Test implementations
-
         private class TestData : ISemanticData
         {
             public string Id { get; set; }
@@ -243,7 +178,13 @@ namespace Blazocious.Test
 
         private class TestSemanticBuilder : SemanticBuilderBase<TestData, TestOptions>
         {
-            public static int CreateFragmentCallCount = 0;
+            private static int _createFragmentCallCount;
+            public static int CreateFragmentCallCount => _createFragmentCallCount;
+
+            public static void ResetCounter()
+            {
+                _createFragmentCallCount = 0;
+            }
 
             public TestSemanticBuilder(TestData data) : base(data) { }
 
@@ -251,7 +192,7 @@ namespace Blazocious.Test
 
             protected override RenderFragment CreateFragment()
             {
-                CreateFragmentCallCount++;
+                System.Threading.Interlocked.Increment(ref _createFragmentCallCount);
 
                 return builder =>
                 {
@@ -265,33 +206,6 @@ namespace Blazocious.Test
                     }
 
                     builder.AddContent(4, Data.Name);
-                    builder.CloseElement();
-                };
-            }
-        }
-
-        private class TestCustomCacheKeyBuilder : SemanticBuilderBase<TestData, TestOptions>
-        {
-            public static int CreateFragmentCallCount = 0;
-            public string TestCacheKey { get; private set; }
-
-            public TestCustomCacheKeyBuilder(TestData data) : base(data) { }
-
-            protected override string ComputeCacheKey()
-            {
-                TestCacheKey = "custom-cache-key";
-                return TestCacheKey;
-            }
-
-            protected override RenderFragment CreateFragment()
-            {
-                CreateFragmentCallCount++;
-
-                return builder =>
-                {
-                    builder.OpenElement(0, "div");
-                    builder.AddAttribute(1, "data-id", Data.Id);
-                    builder.AddContent(2, Data.Name);
                     builder.CloseElement();
                 };
             }

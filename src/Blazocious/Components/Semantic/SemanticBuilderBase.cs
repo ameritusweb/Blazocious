@@ -1,12 +1,7 @@
-﻿using Blazocious.Core.Theme;
+﻿using Blazocious.Components.Semantic;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Blazocious.Components.Semantic
 {
@@ -20,7 +15,6 @@ namespace Blazocious.Components.Semantic
         protected TOptions Options { get; private set; } = new();
         protected SemanticThemeContext? Theme { get; private set; }
 
-        private string? _cacheKey;
         private Action<RenderTreeBuilder>? _customizer;
 
         protected SemanticBuilderBase(TData data)
@@ -51,14 +45,16 @@ namespace Blazocious.Components.Semantic
             if (!ShouldCache())
                 return CreateFragmentWithCustomization();
 
-            var key = GetOrCreateCacheKey();
+            var key = ComputeCacheKey();
 
+            // If PreferStale is true and we have a cached version, use it and refresh in background
             if (Options.Cache?.PreferStale == true && _cache.TryGetValue(key, out RenderFragment? cached))
             {
                 _ = Task.Run(() => RefreshCache(key));
                 return cached;
             }
 
+            // Get or create the cached fragment
             return _cache.GetOrCreate(key, entry =>
             {
                 entry.SetAbsoluteExpiration(Options.Cache?.Duration ?? TimeSpan.FromMinutes(5));
@@ -68,29 +64,17 @@ namespace Blazocious.Components.Semantic
 
         protected virtual bool ShouldCache() => Options.Cache?.Enabled == true;
 
-        private RenderFragment CreateFragmentWithCustomization() => builder =>
+        private RenderFragment CreateFragmentWithCustomization()
         {
-            CreateFragment()(builder);
-            _customizer?.Invoke(builder);
-        };
+            // Create a single instance of the fragment builder
+            var fragment = CreateFragment();
 
-        private string GetOrCreateCacheKey()
-        {
-            if (_cacheKey != null) return _cacheKey;
-
-            _cacheKey = ComputeCacheKey();
-            return _cacheKey;
+            return builder =>
+            {
+                fragment(builder);
+                _customizer?.Invoke(builder);
+            };
         }
-
-        /// <summary>
-        /// Override to control cache key generation specific to your semantic component
-        /// </summary>
-        protected abstract string ComputeCacheKey();
-
-        /// <summary>
-        /// Override to define the rendering logic for your semantic component
-        /// </summary>
-        protected abstract RenderFragment CreateFragment();
 
         private void RefreshCache(string key)
         {
@@ -98,9 +82,9 @@ namespace Blazocious.Components.Semantic
             _cache.Set(key, fragment, Options.Cache?.Duration ?? TimeSpan.FromMinutes(5));
         }
 
-        /// <summary>
-        /// Helper to build class strings considering theme context
-        /// </summary>
+        protected abstract string ComputeCacheKey();
+        protected abstract RenderFragment CreateFragment();
+
         protected string BuildClassString(params string?[] classes)
         {
             var list = classes.Where(c => !string.IsNullOrWhiteSpace(c)).ToList();
@@ -114,9 +98,6 @@ namespace Blazocious.Components.Semantic
             return string.Join(" ", list);
         }
 
-        /// <summary>
-        /// Helper to build style strings considering theme context
-        /// </summary>
         protected string BuildStyleString(params string?[] styles)
         {
             var list = styles.Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
