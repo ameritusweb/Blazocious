@@ -303,3 +303,204 @@ builder.Services.AddBlazociousTheming(options =>
     options.InitialVariant = "light";
 });
 ```
+
+---
+
+🔹 1. Themed Button With States + Variant
+
+```csharp
+public class SemanticButton : ComponentBase
+{
+    [Inject] public ThemeContext ThemeContext { get; set; } = default!;
+
+    [Parameter] public string Text { get; set; } = "";
+    [Parameter] public string Variant { get; set; } = "primary";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        var button = Element.Button()
+            .YApply("components.button.base")
+            .YApply($"components.button.variants.{Variant}")
+            .When(Disabled, b => b
+                .YApply("components.button.states.disabled")
+                .Attr("disabled", true))
+            .OnClick(OnClick)
+            .Text(Text);
+
+        button.Build()(builder);
+    }
+}
+```
+
+🔥 YAML support
+```yaml
+
+components:
+  button:
+    base:
+      class: "button px-4 py-2"
+    variants:
+      primary:
+        class: "bg-blue-600 text-white"
+      danger:
+        class: "bg-red-600 text-white"
+    states:
+      disabled:
+        class: "opacity-50 cursor-not-allowed"
+🔹 2. Card With Header, Body, Variant, and Tokens
+```
+
+```csharp
+
+public class ThemedCard : ComponentBase
+{
+    [Inject] public ThemeContext ThemeContext { get; set; } = default!;
+
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string Variant { get; set; } = "default";
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        Element.Div()
+            .YApply("components.card.base")
+            .YApply($"components.card.variants.{Variant}")
+            .Child(
+                Element.Div()
+                    .YApply("components.card.header")
+                    .Text(Title)
+            )
+            .Child(
+                Element.Div()
+                    .YApply("components.card.body")
+                    .Child(ChildContent)
+            )
+            .Build()(builder);
+    }
+}
+```
+🔹 3. Form Input With States, Region, and Tokens
+
+```csharp
+
+public class SemanticTextInput : ComponentBase
+{
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+
+    private void HandleChange(ChangeEventArgs e)
+    {
+        ValueChanged.InvokeAsync(e.Value?.ToString());
+    }
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        Element.Div()
+            .YApply("components.input.base")
+            .Child(
+                Element.Label()
+                    .YApply("components.input.label")
+                    .Text(Label)
+            )
+            .Child(
+                Element.Input()
+                    .Attr("value", Value)
+                    .YApply("components.input.field")
+                    .When(Disabled, e => e.YApply("components.input.states.disabled"))
+                    .When(Error != null, e => e.YApply("components.input.states.error"))
+                    .OnChange(HandleChange)
+            )
+            .When(Error != null, e => e
+                .Child(
+                    Element.Div()
+                        .YApply("components.input.error")
+                        .Text(Error!)
+                ))
+            .Build()(builder);
+    }
+}
+```
+🔹 4. Theme Toggle Component
+
+```csharp
+public class ThemeSwitcher : ComponentBase
+{
+    [Inject] public ThemeContext ThemeContext { get; set; } = default!;
+    [Inject] public IThemeRegistry ThemeRegistry { get; set; } = default!;
+
+    private async Task Toggle()
+    {
+        var newTheme = ThemeContext.CurrentVariant == "dark" ? "light" : "dark";
+        await ThemeContext.SetVariantAsync(newTheme, ThemeRegistry);
+    }
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        Element.Button()
+            .YApply("components.button.base")
+            .YApply("components.button.variants.secondary")
+            .Text($"Switch to {(ThemeContext.CurrentVariant == "dark" ? "Light" : "Dark")} Theme")
+            .OnClick(Toggle)
+            .Build()(builder);
+    }
+}
+```
+🔹 5. Fully Composed Layout (With Region + Token)
+
+```csharp
+public class DashboardLayout : ComponentBase
+{
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        Element.Main()
+            .YApply("components.layout.base")
+            .Child(
+                Element.Nav()
+                    .YApply("components.layout.nav")
+                    .Child(Element.Text("Navigation"))
+            )
+            .Child(
+                Element.Section()
+                    .YApply("components.layout.content")
+                    .Child(Element.Text("Main content here..."))
+            )
+            .Child(
+                Element.Footer()
+                    .YApply("components.layout.footer")
+                    .Text("Footer")
+            )
+            .Build()(builder);
+    }
+}
+```
+
+✅ This All Works Because of:
+Your merged theme structure (ParsedTheme)
+
+YApply() targeting components.{name}.{region/variant}
+
+Injected ThemeContext for variant resolution
+
+Token + state + variant + region logic
+
+Optional DI-based loaders and caching
+
+Markup-free, semantic-first component building
+
+🔄 Bonus: Auto-Adaptive Variant Builder
+
+```csharp
+public class VariantCard : CardBuilder
+{
+    public VariantCard(CardData data) : base(data)
+    {
+        if (data.Type == "alert") WithVariant("danger");
+        else if (data.Type == "info") WithVariant("info");
+    }
+}
+```
