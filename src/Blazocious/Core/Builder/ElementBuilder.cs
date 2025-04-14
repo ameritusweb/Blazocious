@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,8 @@ namespace Blazocious.Core.Builder
         private ElementReference? _elementRef;
         private Action<ElementReference>? _onMounted;
         private Action<ElementBuilder>? _customizer;
+
+        internal Action<RenderTreeBuilder>? BuildOverride { get; init; }
 
         public ElementBuilder(string tag)
         {

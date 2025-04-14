@@ -112,6 +112,12 @@ namespace Blazocious.Core.Builder
 
         public RenderFragment Build() => builder =>
         {
+            if (BuildOverride != null)
+            {
+                BuildOverride(builder);
+                return;
+            }
+
             builder.OpenElement(0, _tag);
 
             int seq = 1;

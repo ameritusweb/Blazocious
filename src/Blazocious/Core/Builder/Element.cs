@@ -8,6 +8,19 @@ namespace Blazocious.Core.Builder
 {
     public static class Element
     {
+
+        public static ElementBuilder Icon(string className) =>
+        Element.RawHtml($"<i class='{className}'></i>");
+
+        public static ElementBuilder RawHtml(string html)
+        {
+            return new ElementBuilder("span")
+                .Child(new ElementBuilder("_raw") // Using a dummy tag that won't actually render
+                {
+                    BuildOverride = builder => builder.AddMarkupContent(0, html)
+                });
+        }
+
         public static ElementBuilder Div(string? @class = null) =>
             new ElementBuilder("div").MaybeAttr("class", @class);
 
