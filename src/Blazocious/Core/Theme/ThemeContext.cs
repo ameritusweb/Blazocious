@@ -8,29 +8,27 @@ namespace Blazocious.Core.Theme
 {
     public class ThemeContext
     {
-        private string _currentVariant = "light";
-        private readonly List<Action> _listeners = new();
+        private ParsedTheme? _currentTheme;
+        private string _currentVariant = "default";
+        private event Action? ThemeChanged;
 
+        public ParsedTheme CurrentTheme => _currentTheme ?? throw new InvalidOperationException("Theme not set");
         public string CurrentVariant => _currentVariant;
 
-        public void SetVariant(string variant)
+        public async Task SetVariantAsync(string variant, IThemeRegistry registry)
         {
-            if (_currentVariant == variant) return;
-            _currentVariant = variant;
-            NotifyListeners();
+            var theme = registry.Get(variant);
+            if (theme != null)
+            {
+                _currentTheme = theme;
+                _currentVariant = variant;
+                ThemeChanged?.Invoke();
+            }
         }
 
-        public IDisposable OnChange(Action listener)
+        public void OnThemeChanged(Action callback)
         {
-            _listeners.Add(listener);
-            return new ThemeSubscription(() => _listeners.Remove(listener));
-        }
-
-        private void NotifyListeners() => _listeners.ForEach(l => l());
-
-        private record ThemeSubscription(Action Cleanup) : IDisposable
-        {
-            public void Dispose() => Cleanup();
+            ThemeChanged += callback;
         }
     }
 }

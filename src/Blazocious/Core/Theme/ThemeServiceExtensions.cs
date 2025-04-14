@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Blazocious.Services;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,11 @@ namespace Blazocious.Core.Theme
             services.Configure(configure);
             services.AddSingleton<IThemeInitializer, ThemeInitializer>();
             services.AddScoped<ThemeContext>();
-            services.AddSingleton<ThemeMerger>();
+            services.AddMemoryCache()
+                .AddScoped<IThemeLoader, YamlThemeLoader>()
+                .AddSingleton<IThemeRegistry, ThemeRegistry>()
+                .AddScoped<ThemeContext>()
+                .AddHostedService<BlazociousThemeInitializer>();
             return services;
         }
     }
