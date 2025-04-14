@@ -61,11 +61,6 @@ namespace Blazocious.Core.Builder
             return builder;
         }
 
-        public static ElementBuilder Show(this ElementBuilder builder, bool condition = true)
-        {
-            return builder.Hide(!condition);
-        }
-
         public static ElementBuilder Disabled(this ElementBuilder builder, bool condition = true)
         {
             if (condition)

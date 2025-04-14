@@ -30,5 +30,11 @@ namespace Blazocious.Core.Theme
         {
             ThemeChanged += callback;
         }
+
+        public void RemoveChangeListener(Action callback)
+        {
+            ThemeChanged -= callback;
+        }
+
     }
 }

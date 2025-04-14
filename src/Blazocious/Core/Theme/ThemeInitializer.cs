@@ -1,30 +1,28 @@
 ﻿using Blazocious.Core.YAML;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Blazocious.Core.Theme
 {
     public class ThemeInitializer : IThemeInitializer
     {
         private readonly IOptions<BlazociousThemeOptions> _options;
+        private readonly IThemeLoader _themeLoader;
+        private readonly IThemeRegistry _registry;
         private readonly ThemeContext _themeContext;
-        private readonly ThemeMerger _themeMerger;
         private readonly ILogger<ThemeInitializer> _logger;
 
         public ThemeInitializer(
             IOptions<BlazociousThemeOptions> options,
+            IThemeLoader themeLoader,
+            IThemeRegistry registry,
             ThemeContext themeContext,
-            ThemeMerger themeMerger,
             ILogger<ThemeInitializer> logger)
         {
             _options = options;
+            _themeLoader = themeLoader;
+            _registry = registry;
             _themeContext = themeContext;
-            _themeMerger = themeMerger;
             _logger = logger;
         }
 
@@ -34,106 +32,35 @@ namespace Blazocious.Core.Theme
             {
                 var options = _options.Value;
 
-                // Load default theme
+                // Load and register base theme
                 if (options.Debug)
-                {
-                    _logger.LogInformation("Loading default theme from {Path}", options.DefaultPath);
-                }
+                    _logger.LogInformation("Loading base theme from {Path}", options.DefaultPath);
 
-                var defaultTheme = await LoadTheme(options.DefaultPath);
-                await _themeContext.RegisterTheme("dark", defaultTheme);
+                var defaultTheme = await _themeLoader.LoadThemeAsync(options.DefaultPath);
+                _registry.Register("default", defaultTheme);
 
                 // Load and merge overrides
                 foreach (var (name, path) in options.Overrides)
                 {
                     if (options.Debug)
-                    {
-                        _logger.LogInformation("Loading {Name} theme from {Path}", name, path);
-                    }
+                        _logger.LogInformation("Loading override theme '{Name}' from {Path}", name, path);
 
-                    var overrideTheme = await LoadTheme(path);
-                    var mergedTheme = _themeMerger.Merge(defaultTheme, overrideTheme);
-                    await _themeContext.RegisterTheme(name, mergedTheme);
+                    var merged = await _themeLoader.LoadThemeAsync(options.DefaultPath, path);
+                    _registry.Register(name, merged);
                 }
 
-                // Set default variant
-                await _themeContext.SetVariant(options.DefaultVariant);
+                // Set initial variant
+                var variant = options.DefaultVariant ?? "default";
+                await _themeContext.SetVariantAsync(variant, _registry);
 
                 if (options.Debug)
-                {
-                    _logger.LogInformation("Theme initialization complete");
-                }
+                    _logger.LogInformation("Theme initialization complete. Current: {Variant}", variant);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to initialize themes");
                 throw;
             }
-        }
-
-        private async Task<ParsedTheme> LoadTheme(string path)
-        {
-            if (Directory.Exists(path))
-            {
-                // Load from directory
-                return await LoadThemeFromDirectory(path);
-            }
-            else if (File.Exists(path))
-            {
-                // Load single file
-                var yaml = await File.ReadAllTextAsync(path);
-                return ParseYaml(yaml);
-            }
-
-            throw new FileNotFoundException($"Theme path not found: {path}");
-        }
-
-        private async Task<ParsedTheme> LoadThemeFromDirectory(string directory)
-        {
-            var mergedTheme = new ParsedTheme();
-            var parser = new YamlParser();
-
-            // Load tokens first
-            var tokensPath = Path.Combine(directory, "tokens.yaml");
-            if (File.Exists(tokensPath))
-            {
-                var tokensYaml = await File.ReadAllTextAsync(tokensPath);
-                var tokens = parser.Parse(tokensYaml);
-                mergedTheme.Tokens = tokens.Tokens;
-            }
-
-            // Load all component files
-            foreach (var file in Directory.GetFiles(directory, "*.yaml"))
-            {
-                if (Path.GetFileName(file) == "tokens.yaml") continue;
-
-                var yaml = await File.ReadAllTextAsync(file);
-                var parsed = parser.Parse(yaml);
-
-                // Merge components and styles
-                foreach (var (key, value) in parsed.Components)
-                {
-                    mergedTheme.Components[key] = value;
-                }
-                foreach (var (key, value) in parsed.Styles)
-                {
-                    mergedTheme.Styles[key] = value;
-                }
-            }
-
-            return mergedTheme;
-        }
-
-        private ParsedTheme ParseYaml(string yaml)
-        {
-            var parser = new YamlParser();
-            var (tokens, components, styles) = parser.Parse(yaml);
-            return new ParsedTheme
-            {
-                Tokens = tokens,
-                Components = components,
-                Styles = styles
-            };
         }
     }
 }

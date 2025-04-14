@@ -11,20 +11,32 @@ namespace Blazocious.Core.Theme
     public class ThemeProvider : ComponentBase, IDisposable
     {
         [Inject] private ThemeContext ThemeContext { get; set; } = default!;
-        [Parameter] public string Variant { get; set; } = "light";
+        [Inject] private IThemeRegistry ThemeRegistry { get; set; } = default!;
+
+        [Parameter] public string Variant { get; set; } = "default";
         [Parameter] public RenderFragment? ChildContent { get; set; }
 
-        private IDisposable? _subscription;
+        private bool _initialized;
+        private Action? _onChangeHandler;
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
-            ThemeContext.SetVariant(Variant);
-            _subscription = ThemeContext.OnChange(() => StateHasChanged());
+            _onChangeHandler = () => InvokeAsync(StateHasChanged);
+            ThemeContext.OnThemeChanged(_onChangeHandler);
+
+            if (!_initialized)
+            {
+                await ThemeContext.SetVariantAsync(Variant, ThemeRegistry);
+                _initialized = true;
+            }
         }
 
-        protected override void OnParametersSet()
+        protected override async Task OnParametersSetAsync()
         {
-            ThemeContext.SetVariant(Variant);
+            if (_initialized)
+            {
+                await ThemeContext.SetVariantAsync(Variant, ThemeRegistry);
+            }
         }
 
         protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -37,7 +49,10 @@ namespace Blazocious.Core.Theme
 
         public void Dispose()
         {
-            _subscription?.Dispose();
+            if (_onChangeHandler is not null)
+            {
+                ThemeContext.RemoveChangeListener(_onChangeHandler);
+            }
         }
     }
 }

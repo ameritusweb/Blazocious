@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Blazocious.Core.Builder.Models;
+using Microsoft.AspNetCore.Components;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -109,7 +110,7 @@ namespace Blazocious.Core.Builder
             );
         }
 
-        public override RenderFragment Build() => builder =>
+        public RenderFragment Build() => builder =>
         {
             builder.OpenElement(0, _tag);
 
