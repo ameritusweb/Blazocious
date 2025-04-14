@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace Blazocious.Core.Builder;
@@ -156,6 +157,16 @@ public partial class ElementBuilder
             });
         }
 
+        List<string> uniqueIds = new List<string>();
+
+        foreach (var (mediaQuery, styles) in _mediaQueries)
+        {
+            // Generate a unique selector for this element
+            var uniqueId = $"blz-{Guid.NewGuid():N}";
+            _classes.Add(uniqueId);
+            uniqueIds.Add(uniqueId);
+        }
+
         // Add classes
         if (_classes.Any())
         {
@@ -169,19 +180,25 @@ public partial class ElementBuilder
             builder.AddAttribute(seq++, "style", styleString);
         }
 
+        // Add other attributes
+        foreach (var (name, value) in _attributes)
+        {
+            builder.AddAttribute(seq++, name, value);
+        }
+
         // Add media queries if we have any
         if (_mediaQueries.Any())
         {
             builder.OpenElement(seq++, "style");
             var styleBuilder = new StringBuilder();
 
+            int index = 0;
             foreach (var (mediaQuery, styles) in _mediaQueries)
             {
                 styleBuilder.AppendLine(mediaQuery + " {");
 
                 // Generate a unique selector for this element
-                var uniqueId = $"blz-{Guid.NewGuid():N}";
-                _classes.Add(uniqueId);
+                var uniqueId = uniqueIds[index++]; 
 
                 styleBuilder.AppendLine($"  .{uniqueId} {{");
 
@@ -190,7 +207,8 @@ public partial class ElementBuilder
                     if (property == "class")
                     {
                         // Handle classes differently - they need to be applied as is
-                        _classes.Add(value);
+                        // This is not supported.
+                        // _classes.Add(value);
                     }
                     else
                     {
@@ -204,12 +222,6 @@ public partial class ElementBuilder
 
             builder.AddContent(seq++, styleBuilder.ToString());
             builder.CloseElement();
-        }
-
-        // Add other attributes
-        foreach (var (name, value) in _attributes)
-        {
-            builder.AddAttribute(seq++, name, value);
         }
 
         // Add content and children

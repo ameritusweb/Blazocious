@@ -1,4 +1,5 @@
 ﻿using Blazocious.Core.Builder;
+using Blazocious.Test.Helpers;
 using Bunit;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Blazocious.Test
 {
-    public class ResponsiveBuilderTests : TestContext
+    public class ResponsiveBuilderTests : BlazociousTestBase
     {
         [Fact]
         public void ResponsiveBuilder_At_ShouldApplyMinWidthMediaQuery()
@@ -16,7 +17,7 @@ namespace Blazocious.Test
             // Arrange & Act
             var cut = Render(builder =>
             {
-                Element.Div()
+                Element.Div().WithServiceProvider(Services)
                     .Responsive(r => r
                         .At(Breakpoint.MD, b => b
                             .Class("md-class")

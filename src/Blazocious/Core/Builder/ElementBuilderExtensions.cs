@@ -24,7 +24,7 @@ public static class ElementBuilderExtensions
         => builder.Attr("class", @class);
 
     public static ElementBuilder Style(this ElementBuilder builder, string property, string value)
-        => builder.Attr("style", $"{property}: {value}");
+        => builder.AddStyle(property, value);
 
     public static ElementBuilder OnClick(this ElementBuilder builder, object? value)
         => builder.Attr("onclick", value);

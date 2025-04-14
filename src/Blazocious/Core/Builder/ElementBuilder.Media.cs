@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Blazocious.Core.Styling;
+using Microsoft.AspNetCore.Components;
 
 namespace Blazocious.Core.Builder;
 
@@ -8,33 +9,27 @@ public partial class ElementBuilder
 
     public ElementBuilder AddMediaQuery(string mediaQuery, Action<ElementBuilder> configure)
     {
-        // Create a temporary builder to capture styles
         var tempBuilder = new ElementBuilder("temp");
         configure(tempBuilder);
 
-        // Extract styles from temporary builder
-        var styles = tempBuilder._styles
-            .Select(s => (s.Key, s.Value.ToString() ?? ""))
-            .ToList();
+        var styles = this.UseService<BlazociousStyles>();
+        if (styles == null) return this;
 
-        var classes = tempBuilder._classes.ToList();
+        var mediaStyles = new List<(string Property, string Value)>();
 
-        // If we have styles or classes for this media query, store them
-        if (styles.Any() || classes.Any())
+        // Get styles for each class
+        foreach (var className in tempBuilder._classes)
         {
-            if (!_mediaQueries.ContainsKey(mediaQuery))
-            {
-                _mediaQueries[mediaQuery] = new List<(string, string)>();
-            }
+            mediaStyles.AddRange(styles.GetStylesFormatted(className));
+        }
 
-            // Add styles
-            _mediaQueries[mediaQuery].AddRange(styles);
+        // Add any direct styles
+        mediaStyles.AddRange(tempBuilder._styles
+            .Select(s => (s.Key, s.Value.ToString() ?? "")));
 
-            // Convert classes to a style
-            if (classes.Any())
-            {
-                _mediaQueries[mediaQuery].Add(("class", string.Join(" ", classes)));
-            }
+        if (mediaStyles.Any())
+        {
+            _mediaQueries[mediaQuery] = mediaStyles;
         }
 
         return this;

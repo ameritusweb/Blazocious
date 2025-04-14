@@ -37,6 +37,14 @@ namespace Blazocious.Core.Extensions
                 });
             }
 
+            services.Configure<BlazociousStylesOptions>(stylesOptions =>
+            {
+                if (!string.IsNullOrEmpty(options.DefaultStylesPath))
+                {
+                    stylesOptions.YamlPath = options.DefaultStylesPath;
+                }
+            });
+
             // Add styling services
             services.AddScoped<BlazociousStyles>();
 

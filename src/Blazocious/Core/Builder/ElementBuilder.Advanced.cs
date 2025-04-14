@@ -91,6 +91,12 @@ public partial class ElementBuilder
         return this;
     }
 
+    internal ElementBuilder AddStyle(string name, string value)
+    {
+        _styles.Add(name, value);
+        return this;
+    }
+
     private static string ToCssName(string pascalCase)
     {
         return string.Concat(

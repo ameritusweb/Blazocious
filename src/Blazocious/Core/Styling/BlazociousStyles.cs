@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace Blazocious.Core.Styling
 {
@@ -16,9 +17,31 @@ namespace Blazocious.Core.Styling
         private readonly Dictionary<string, ComponentDefinition> _components;
         private readonly Dictionary<string, ComponentBaseDefinition> _streetStyles;
 
-        public BlazociousStyles(string yamlContent)
+        public BlazociousStyles(IOptions<BlazociousStylesOptions> options)
         {
             var parser = new YamlParser();
+            string yamlContent;
+
+            if (!string.IsNullOrEmpty(options.Value.YamlContent))
+            {
+                yamlContent = options.Value.YamlContent;
+            }
+            else if (!string.IsNullOrEmpty(options.Value.YamlPath))
+            {
+                yamlContent = File.ReadAllText(options.Value.YamlPath);
+            }
+            else
+            {
+                throw new InvalidOperationException("Either YamlContent or YamlPath must be provided in BlazociousStylesOptions");
+            }
+
+            (_tokens, _components, _streetStyles) = parser.Parse(yamlContent);
+        }
+
+        internal BlazociousStyles(string yamlContent)
+        {
+            var parser = new YamlParser();
+
             (_tokens, _components, _streetStyles) = parser.Parse(yamlContent);
         }
 
@@ -92,6 +115,24 @@ namespace Blazocious.Core.Styling
                     Style = BuildStyleString(styles)
                 };
             });
+        }
+
+        public List<(string Property, string Value)> GetStylesFormatted(string className)
+        {
+            var result = GetStyles(className);
+            if (result?.Style == null) return new List<(string Property, string Value)>();
+
+            // Parse the style string into property-value pairs
+            return result.Style
+                .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .Select(s =>
+                {
+                    var parts = s.Split(':', 2);
+                    return (parts[0].Trim(), parts[1].Trim());
+                })
+                .ToList();
         }
 
         private StyleResult CreateStyleResult(ComponentBaseDefinition def)
