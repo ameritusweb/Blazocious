@@ -1,11 +1,6 @@
 ﻿using Blazocious.Core.Builder;
 using Blazocious.Test.Extensions;
 using Bunit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Blazocious.Test
 {
@@ -35,7 +30,7 @@ components:
             // Act
             var cut = Render(builder =>
             {
-                Element.Button()
+                Element.Button().WithServiceProvider(Services)
                     .YApply("button")
                     .YApply("button", "primary")
                     .Text("Click me")
@@ -79,7 +74,7 @@ components:
             // Act
             var cut = Render(builder =>
             {
-                Element.Div()
+                Element.Div().WithServiceProvider(Services)
                     .YApply("card")
                     .Child(Element.Div()
                         .YApply("card.header")
@@ -124,7 +119,7 @@ flex-container:
             // Act
             var cut = Render(builder =>
             {
-                Element.Div()
+                Element.Div().WithServiceProvider(Services)
                     .YApply("flex-container")
                     .Child(Element.Div().Text("Item 1"))
                     .Child(Element.Div().Text("Item 2"))
@@ -162,7 +157,7 @@ components:
             // Act
             var cut = Render(builder =>
             {
-                Element.Button()
+                Element.Button().WithServiceProvider(Services)
                     .YApply("button")
                     .Text("Token Button")
                     .Build()(builder);
@@ -190,7 +185,7 @@ components:
             // Act
             var cut = Render(builder =>
             {
-                Element.Div()
+                Element.Div().WithServiceProvider(Services)
                     .YApply("non-existent-component")
                     .Text("No styles")
                     .Build()(builder);
@@ -257,7 +252,7 @@ components:
             // Act
             var cut = Render(builder =>
             {
-                Element.Div()
+                Element.Div().WithServiceProvider(Services)
                     .YApply("card")
                     .YApply("card", "primary")
                     .Child(Element.Div()
