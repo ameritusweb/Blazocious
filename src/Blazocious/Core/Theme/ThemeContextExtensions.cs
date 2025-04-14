@@ -1,4 +1,5 @@
 ﻿using Blazocious.Core.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace Blazocious.Core.Theme
         }
 
         // Helper for service injection in builders
-        private static ElementBuilder UseService<T>(
+        internal static ElementBuilder UseService<T>(
             this ElementBuilder builder,
             Action<T, ElementBuilder> configure) where T : class
         {

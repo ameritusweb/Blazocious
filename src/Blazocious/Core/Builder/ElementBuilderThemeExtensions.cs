@@ -1,9 +1,4 @@
 ﻿using Blazocious.Core.Theme;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Blazocious.Core.Builder
 {
@@ -15,7 +10,7 @@ namespace Blazocious.Core.Builder
             string? theme = null,
             string? variant = null)
         {
-            return builder.UseService<ThemeMerger>((merger, b) =>
+            Action<IThemeMerger, ElementBuilder> serviceAction = (merger, b) =>
             {
                 var styles = merger.GetStyles(component, theme);
 
@@ -48,7 +43,8 @@ namespace Blazocious.Core.Builder
                         }
                     }
                 }
-            });
+            };
+            return builder.UseService<IThemeMerger>(serviceAction);
         }
     }
 }

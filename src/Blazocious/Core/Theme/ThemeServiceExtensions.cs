@@ -31,6 +31,7 @@ namespace Blazocious.Core.Theme
             services.AddScoped<ThemeContext>();
             services.AddMemoryCache()
                 .AddScoped<IThemeLoader, YamlThemeLoader>()
+                .AddScoped<IThemeMerger, ThemeMerger>()
                 .AddSingleton<IThemeRegistry, ThemeRegistry>()
                 .AddScoped<ThemeContext>()
                 .AddHostedService<BlazociousThemeInitializer>();
