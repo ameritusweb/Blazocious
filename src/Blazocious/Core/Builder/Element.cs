@@ -45,6 +45,12 @@ namespace Blazocious.Core.Builder
         public static ElementBuilder Input(string? type = "text") =>
             new ElementBuilder("input").MaybeAttr("type", type);
 
+        public static ElementBuilder Ul(string? @class = null) =>
+            new ElementBuilder("ul").MaybeAttr("class", @class);
+
+        public static ElementBuilder Li(string? @class = null) =>
+            new ElementBuilder("li").MaybeAttr("class", @class);
+
         public static ElementBuilder Section(string? @class = null) =>
             new ElementBuilder("section").MaybeAttr("class", @class);
 
