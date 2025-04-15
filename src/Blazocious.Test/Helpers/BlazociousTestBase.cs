@@ -1,7 +1,9 @@
 ﻿using Blazocious.Core.Builder;
+using Blazocious.Core.Extensions;
 using Blazocious.Core.Styling;
 using Blazocious.Core.Theme;
 using Bunit;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Blazocious.Test.Helpers
@@ -29,23 +31,31 @@ card:
 
         protected BlazociousTestBase()
         {
-            // Add your core Blazocious services
-            Services.AddMemoryCache();
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
 
-            // Configure styles
+            var blazociousOptions = configuration.GetSection("Blazocious").Get<BlazociousOptions>();
+
+            Services.AddBlazocious(options =>
+            {
+                options.DefaultThemePath = blazociousOptions.DefaultThemePath;
+                options.DefaultThemeVariant = blazociousOptions.DefaultThemeVariant;
+                options.DefaultStylesPath = blazociousOptions.DefaultStylesPath;
+                options.CssOutputPath = blazociousOptions.CssOutputPath;
+                options.Debug = blazociousOptions.Debug;
+                options.ValidateTokens = blazociousOptions.ValidateTokens;
+                options.CacheThemes = blazociousOptions.CacheThemes;
+                options.CacheDuration = blazociousOptions.CacheDuration;
+            });
+
+            // Add additional services that might be needed for testing
+            Services.AddScoped<IThemeMerger, ThemeMerger>();
+            Services.AddSingleton<IThemeInitializer, ThemeInitializer>();
+
+            // Configure default test styles
             ConfigureTestStyles(DefaultTestStyles);
-
-            // Add services
-            Services.AddScoped<ThemeContext>();
-            Services.AddSingleton<IThemeRegistry, ThemeRegistry>();
-            Services.AddScoped<IThemeLoader, YamlThemeLoader>();
-            Services.AddScoped<BlazociousStyles>();
-
-            // Optionally preload or mock a theme
-            var themeContext = Services.GetRequiredService<ThemeContext>();
-            var themeRegistry = Services.GetRequiredService<IThemeRegistry>();
-            themeRegistry.Register("default", new ParsedTheme());
-            themeContext.SetVariantAsync("default", themeRegistry).GetAwaiter().GetResult();
         }
 
         // Helper method to override default styles for specific tests
