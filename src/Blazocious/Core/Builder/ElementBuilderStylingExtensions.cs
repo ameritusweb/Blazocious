@@ -25,6 +25,7 @@ namespace Blazocious.Core.Builder
 
             if (!string.IsNullOrEmpty(result.Class))
             {
+                builder.Tracker.TrackClass(result.Class);
                 builder.Class(result.Class);
             }
 
@@ -39,6 +40,7 @@ namespace Blazocious.Core.Builder
                 foreach (var (state, styles) in result.States)
                 {
                     var stateClass = $"{result.Class}--{state}";
+                    builder.Tracker.TrackClass(stateClass);
                     builder.Class(stateClass);
                 }
             }

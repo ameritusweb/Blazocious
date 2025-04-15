@@ -1,6 +1,7 @@
 ﻿using Blazocious.Core.Builder;
 using Blazocious.Core.Styling;
 using Blazocious.Core.Theme;
+using Blazocious.Core.Trackers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Blazocious.Core.Extensions
@@ -47,6 +48,8 @@ namespace Blazocious.Core.Extensions
 
             // Add styling services
             services.AddScoped<BlazociousStyles>();
+
+            services.AddSingleton<IClassUsageTracker>();
 
             // Initialize element builder extensions
             if (!string.IsNullOrEmpty(options.DefaultStylesPath))

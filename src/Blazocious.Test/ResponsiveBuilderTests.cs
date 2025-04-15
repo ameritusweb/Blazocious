@@ -17,7 +17,7 @@ namespace Blazocious.Test
             // Arrange & Act
             var cut = Render(builder =>
             {
-                Element.Div().WithServiceProvider(Services)
+                Element.Div()
                     .Responsive(r => r
                         .At(Breakpoint.MD, b => b
                             .Class("md-class")
@@ -45,7 +45,7 @@ namespace Blazocious.Test
             // Arrange & Act
             var cut = Render(builder =>
             {
-                Element.Div().WithServiceProvider(Services)
+                Element.Div()
                     .Responsive(r => r
                         .Below(Breakpoint.SM, b => b
                             .Class("sm-class")
@@ -67,7 +67,7 @@ namespace Blazocious.Test
             // Arrange & Act
             var cut = Render(builder =>
             {
-                Element.Div().WithServiceProvider(Services)
+                Element.Div()
                     .Responsive(r => r
                         .Between(Breakpoint.MD, Breakpoint.LG, b => b
                             .Class("md-lg-class")
@@ -89,7 +89,7 @@ namespace Blazocious.Test
             // Arrange & Act
             var cut = Render(builder =>
             {
-                Element.Div().WithServiceProvider(Services)
+                Element.Div()
                     .Responsive(r => r
                         .Mobile(b => b
                             .Class("mobile-class")
@@ -111,7 +111,7 @@ namespace Blazocious.Test
             // Arrange & Act
             var cut = Render(builder =>
             {
-                Element.Div().WithServiceProvider(Services)
+                Element.Div()
                     .Responsive(r => r
                         .Tablet(b => b
                             .Class("tablet-class")
@@ -133,7 +133,7 @@ namespace Blazocious.Test
             // Arrange & Act
             var cut = Render(builder =>
             {
-                Element.Div().WithServiceProvider(Services)
+                Element.Div()
                     .Responsive(r => r
                         .Desktop(b => b
                             .Class("desktop-class")
@@ -155,7 +155,7 @@ namespace Blazocious.Test
             // Arrange & Act
             var cut = Render(builder =>
             {
-                Element.Div().WithServiceProvider(Services)
+                Element.Div()
                     .Responsive(r => r
                         .Dark(b => b
                             .Class("dark-mode")
@@ -179,7 +179,7 @@ namespace Blazocious.Test
             // Arrange & Act
             var cut = Render(builder =>
             {
-                Element.Div().WithServiceProvider(Services)
+                Element.Div()
                     .Responsive(r => r
                         .ReducedMotion(b => b
                             .Style("transition", "none")))
@@ -200,7 +200,7 @@ namespace Blazocious.Test
             // Arrange & Act
             var cut = Render(builder =>
             {
-                Element.Div().WithServiceProvider(Services)
+                Element.Div()
                     .Responsive(r => r
                         .Mobile(b => b.Style("font-size", "14px"))
                         .Tablet(b => b.Style("font-size", "16px"))

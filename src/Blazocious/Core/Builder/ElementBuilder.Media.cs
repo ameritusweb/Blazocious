@@ -20,6 +20,7 @@ public partial class ElementBuilder
         // Get styles for each class
         foreach (var className in tempBuilder._classes)
         {
+            Tracker.TrackMediaQuery(mediaQuery, className);
             mediaStyles.AddRange(styles.GetStylesFormatted(className));
         }
 

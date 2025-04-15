@@ -11,6 +11,7 @@ namespace Blazocious.Core.Extensions
         public string? DefaultThemePath { get; set; }
         public string? DefaultThemeVariant { get; set; }
         public string? DefaultStylesPath { get; set; }
+        public string? CssOutputPath { get; set; }
         public List<(string Name, string Path)>? ThemeOverrides { get; set; }
         public bool Debug { get; set; }
         public bool ValidateTokens { get; set; } = true;

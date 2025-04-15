@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Blazocious.Core.Trackers;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Blazocious.Core.Builder;
@@ -16,8 +19,11 @@ public partial class ElementBuilder
     private Action<ElementReference>? _onMounted;
     private Action<ElementBuilder>? _customizer;
     private IServiceProvider? _serviceProvider;
+    private IClassUsageTracker _tracker;
 
     internal Action<RenderTreeBuilder>? BuildOverride { get; init; }
+
+    public IClassUsageTracker Tracker => _tracker;
 
     public ElementBuilder(string tag)
     {
@@ -241,9 +247,10 @@ public partial class ElementBuilder
         _customizer?.Invoke(this);
     };
 
-    public ElementBuilder WithServiceProvider(IServiceProvider serviceProvider)
+    internal ElementBuilder WithServiceProviderInternal(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
+        _tracker = serviceProvider.GetRequiredService<IClassUsageTracker>();
         return this;
     }
 

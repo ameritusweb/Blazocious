@@ -61,7 +61,6 @@ components:
             var cut = Render(builder =>
             {
                 Element.Button()
-                    .WithServiceProvider(Services)
                     .YApply("components.button.base")
                     .Build()(builder);
             });
@@ -79,7 +78,6 @@ components:
             var cut = Render(builder =>
             {
                 Element.Button()
-                    .WithServiceProvider(Services)
                     .YApply("components.button.base")
                     .YApply("components.button.variants.primary")
                     .Build()(builder);
@@ -99,7 +97,6 @@ components:
             var cut = Render(builder =>
             {
                 Element.Button()
-                    .WithServiceProvider(Services)
                     .YApply("components.button.base")
                     .YApply("components.button.states.disabled")
                     .Build()(builder);
@@ -119,11 +116,9 @@ components:
             var cut = Render(builder =>
             {
                 Element.Div()
-                    .WithServiceProvider(Services)
                     .YApply("components.card.base")
                     .Child(
                         Element.Div()
-                            .WithServiceProvider(Services)
                             .YApply("components.card.header")
                     )
                     .Build()(builder);
@@ -146,18 +141,15 @@ components:
             var cut = Render(builder =>
             {
                 Element.Div()
-                    .WithServiceProvider(Services)
                     .YApply("components.card.base")
                     .YApply("components.card.variants.outlined")
                     .Child(
                         Element.Div()
-                            .WithServiceProvider(Services)
                             .YApply("components.card.header")
                             .Text("Header")
                     )
                     .Child(
                         Element.Div()
-                            .WithServiceProvider(Services)
                             .YApply("components.card.body")
                             .Text("Content")
                     )
@@ -187,7 +179,6 @@ components:
             var cut = Render(builder =>
             {
                 Element.Button()
-                    .WithServiceProvider(Services)
                     .YApply("components.nonexistent.base")
                     .Class("should-remain")
                     .Build()(builder);
