@@ -1,12 +1,173 @@
 # 🚀 Blazocious Best Practices Guide
 
 ## Table of Contents
+- [YAML Structure and CSS Generation](#yaml-structure-and-css-generation)
+- [Style Management](#style-management)
+- [Component Organization](#component-organization)
 - [Theme Organization](#theme-organization)
 - [Component Structure](#component-structure)
-- [Style Management](#style-management)
 - [Performance Optimization](#performance-optimization)
 - [Common Patterns](#common-patterns)
 - [Anti-patterns to Avoid](#anti-patterns-to-avoid)
+
+## YAML Structure and CSS Generation
+
+### 📝 Understanding the YAML-to-CSS Pipeline
+
+The YAML in Blazocious serves as your CSS source of truth. When you write:
+```yaml
+components:
+  button:
+    base:
+      class: "btn-base"        # The class name that will be used in HTML
+      styles:                  # The styles that define this class (for CSS generation)
+        - padding: '1rem 2rem'
+        - background: '#fff'
+```
+
+This means:
+1. At build time: The `styles` section will be used to generate CSS:
+   ```css
+   .btn-base {
+     padding: 1rem 2rem;
+     background: #fff;
+   }
+   ```
+2. At runtime: YApply will only add the class name:
+   ```csharp
+   Element.Button().YApply("components.button.base")
+   // Results in: <button class="btn-base">
+   ```
+
+### ✨ Best Practices
+1. **YAML Structure**
+   - Use `class` to define the class name that will be applied
+   - Use `styles` to define what that class should look like in the generated CSS
+   - Never rely on the `styles` section for runtime styling
+   ```yaml
+   # ✅ Good - Clear separation of class name and its definition
+   button:
+     base:
+       class: "btn-primary"
+       styles:
+         - background: '#0088cc'
+         - color: '#ffffff'
+
+   # ❌ Bad - Mixing concerns or expecting styles to be applied directly
+   button:
+     base:
+       styles:
+         - background: '#0088cc'  # Won't be applied at runtime
+   ```
+
+2. **Class Naming**
+   - Use semantic class names that reflect the component's purpose
+   - Follow a consistent naming convention (e.g., BEM)
+   ```yaml
+   # ✅ Good - Semantic names
+   card:
+     base:
+       class: "card"
+     header:
+       class: "card__header"
+     body:
+       class: "card__body"
+
+   # ❌ Bad - Non-semantic names
+   card:
+     base:
+       class: "white-box"
+     header:
+       class: "top-part"
+   ```
+
+3. **Style Organization**
+   - Group related styles together
+   - Use comments to explain complex style combinations
+   ```yaml
+   # ✅ Good - Organized and documented
+   button:
+     base:
+       class: "btn"
+       styles:
+         # Core button styles
+         - padding: '0.5rem 1rem'
+         - border-radius: '0.25rem'
+         # Animation properties
+         - transition: 'all 0.2s'
+   ```
+
+## Style Management
+
+### 🎯 Using YApply
+```csharp
+// ✅ Good - Using YApply for class application
+Element.Button()
+    .YApply("components.button.base")  // Adds "btn" class
+    .YApply("components.button.variants.primary")  // Adds "btn-primary" class
+    .Build()
+
+// ❌ Bad - Mixing YApply with direct styling
+Element.Button()
+    .YApply("components.button.base")
+    .Style("padding", "1rem")  // Don't add styles that should be in CSS
+    .Build()
+```
+
+### 🎯 Using YApply (continued)
+```csharp
+Element.Div()
+    .YApply("card")  // Apply base styles
+    .YApply("card.header")  // Apply part styles
+    .Child(...)
+```
+
+### 🌗 Theme Variants
+```csharp
+Element.Div()
+    .YApply("card")
+    .ApplyThemeVariant()  // Use current theme
+    .ApplyThemeVariant("dark")  // Force specific theme
+```
+
+### 🏗️ Component Structure
+```yaml
+# ✅ Good - Complete component definition
+components:
+  button:
+    base:
+      class: "btn"
+      styles:
+        - padding: '0.5rem 1rem'
+    variants:
+      primary:
+        class: "btn-primary"
+        styles:
+          - background: '#0088cc'
+    states:
+      disabled:
+        class: "btn--disabled"
+        styles:
+          - opacity: '0.5'
+```
+
+```csharp
+// Usage in components
+public class ThemedButton : ComponentBase
+{
+    [Parameter] public string Variant { get; set; } = "primary";
+    [Parameter] public bool Disabled { get; set; }
+
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        Element.Button()
+            .YApply("components.button.base")
+            .YApply($"components.button.variants.{Variant}")
+            .When(Disabled, b => b.YApply("components.button.states.disabled"))
+            .Build()(builder);
+    }
+}
+```
 
 ## Theme Organization
 
@@ -96,24 +257,6 @@ card:
    - Use CSS variables for dynamic values
    - Keep inline styles minimal
    - Use classes for repetitive styles
-
-## Style Management
-
-### 🎯 Using YApply
-```csharp
-Element.Div()
-    .YApply("card")  // Apply base styles
-    .YApply("card.header")  // Apply part styles
-    .Child(...)
-```
-
-### 🌗 Theme Variants
-```csharp
-Element.Div()
-    .YApply("card")
-    .ApplyThemeVariant()  // Use current theme
-    .ApplyThemeVariant("dark")  // Force specific theme
-```
 
 ### ✨ Best Practices
 1. **Style Application**
