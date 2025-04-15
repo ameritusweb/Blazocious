@@ -21,3 +21,21 @@ card-md:
     - background-color: '#ffffff'
     - border-radius: '0.5rem'
     - padding: '1rem'
+  
+sm:
+  styles:
+    - background-color: '#ffffff'
+    - border-radius: '0.5rem'
+    - padding: '1rem'
+  
+xl:
+  styles:
+    - background-color: '#ffffff'
+    - border-radius: '0.5rem'
+    - padding: '1rem'
+  
+md:
+  styles:
+    - background-color: '#ffffff'
+    - border-radius: '0.5rem'
+    - padding: '1rem'

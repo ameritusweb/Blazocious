@@ -18,5 +18,24 @@ namespace Blazocious.Test.Extensions
 
             return source.Any(s => s != null && s.Contains(partialKey, comparison));
         }
+
+        public static int PartialIndexOf(
+        this IEnumerable<string> source,
+        string partialValue,
+        StringComparison comparison = StringComparison.OrdinalIgnoreCase)
+        {
+            if (source == null || partialValue == null)
+                return -1;
+
+            int index = 0;
+            foreach (var item in source)
+            {
+                if (item != null && item.Contains(partialValue, comparison))
+                    return index;
+                index++;
+            }
+
+            return -1; // Not found
+        }
     }
 }

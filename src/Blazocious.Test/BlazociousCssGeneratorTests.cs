@@ -79,8 +79,8 @@ namespace Blazocious.Test
             // Arrange
             var testComponent = new TestComponent();
             var renderFragment = testComponent.RenderTest();
-            var classUsageTracker = Services.GetRequiredService<IClassUsageTracker>();
-            
+            var classUsageTracker = Element.GetRequiredService<IClassUsageTracker>();
+
             classUsageTracker.StartCollecting();
 
             // Add multiple media queries
@@ -92,11 +92,11 @@ namespace Blazocious.Test
 
             classUsageTracker.StopCollecting();
 
-            var mediaQueries = classUsageTracker.GetMediaQueries().Keys.ToList();
+            var mediaQueries = classUsageTracker.GetMediaQueries().Keys;
 
             // Assert - verify media queries are ordered correctly
-            Assert.True(mediaQueries.IndexOf("(min-width: 640px)") < mediaQueries.IndexOf("(min-width: 768px)"));
-            Assert.True(mediaQueries.IndexOf("(min-width: 768px)") < mediaQueries.IndexOf("(min-width: 1280px)"));
+            Assert.True(mediaQueries.PartialIndexOf("(min-width: 640px)") < mediaQueries.PartialIndexOf("(min-width: 768px)"));
+            Assert.True(mediaQueries.PartialIndexOf("(min-width: 768px)") < mediaQueries.PartialIndexOf("(min-width: 1280px)"));
         }
 
         [Fact]
@@ -105,7 +105,7 @@ namespace Blazocious.Test
             // Arrange
             var testComponent = new TestComponent();
             var renderFragment = testComponent.RenderTest();
-            var classUsageTracker = Services.GetRequiredService<IClassUsageTracker>();
+            var classUsageTracker = Element.GetRequiredService<IClassUsageTracker>();
 
             // Act
             classUsageTracker.StartCollecting();
