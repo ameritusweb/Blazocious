@@ -1,4 +1,5 @@
-﻿using Blazocious.Core.Styling;
+﻿using Blazocious.Core.Builder;
+using Blazocious.Core.Styling;
 using Blazocious.Core.Theme;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,10 +33,7 @@ card:
             Services.AddMemoryCache();
 
             // Configure styles
-            Services.Configure<BlazociousStylesOptions>(options =>
-            {
-                options.YamlContent = DefaultTestStyles;
-            });
+            ConfigureTestStyles(DefaultTestStyles);
 
             // Add services
             Services.AddScoped<ThemeContext>();
@@ -51,12 +49,14 @@ card:
         }
 
         // Helper method to override default styles for specific tests
-        protected void ConfigureStyles(string yamlContent)
+        protected virtual void ConfigureTestStyles(string yamlContent)
         {
             Services.Configure<BlazociousStylesOptions>(options =>
             {
                 options.YamlContent = yamlContent;
             });
+
+            ElementBuilderStylingExtensions.InitializeStyles(yamlContent);
         }
     }
 }
