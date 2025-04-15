@@ -9,7 +9,9 @@ public partial class ElementBuilder
 
     public ElementBuilder AddMediaQuery(string mediaQuery, Action<ElementBuilder> configure)
     {
-        var tempBuilder = new ElementBuilder("temp");
+        var tempBuilder = new ElementBuilder("temp")
+            .WithServiceProviderInternal(this._serviceProvider!)
+            .WithMediaQuery(mediaQuery);
         configure(tempBuilder);
 
         var styles = this.UseService<BlazociousStyles>();

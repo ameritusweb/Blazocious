@@ -16,6 +16,10 @@ namespace Blazocious.Core.Trackers
 
         public void StopCollecting() => _isCollecting = false;
 
+        public ClassUsageTracker()
+        {
+        }
+
         public void TrackClass(string className)
         {
             if (_isCollecting && !string.IsNullOrEmpty(className))

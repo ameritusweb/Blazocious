@@ -21,7 +21,22 @@ public static class ElementBuilderExtensions
         => string.IsNullOrWhiteSpace(text) ? builder : builder.Text(text);
 
     public static ElementBuilder Class(this ElementBuilder builder, string @class)
-        => builder.Attr("class", @class);
+    {
+        var classes = @class.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
+        foreach (var classValue in classes)
+        {
+            if (builder.MediaQuery != null)
+            {
+                builder.Classes.Add(classValue);
+            }
+            else
+            {
+                builder.Attr("class", classValue);
+            }
+        }
+
+        return builder;
+    }
 
     public static ElementBuilder Style(this ElementBuilder builder, string property, string value)
         => builder.AddStyle(property, value);

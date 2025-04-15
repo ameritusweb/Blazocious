@@ -49,7 +49,7 @@ namespace Blazocious.Core.Extensions
             // Add styling services
             services.AddScoped<BlazociousStyles>();
 
-            services.AddSingleton<IClassUsageTracker>();
+            services.AddSingleton<IClassUsageTracker, ClassUsageTracker>();
 
             // Initialize element builder extensions
             if (!string.IsNullOrEmpty(options.DefaultStylesPath))

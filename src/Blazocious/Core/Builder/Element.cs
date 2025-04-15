@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,11 @@ namespace Blazocious.Core.Builder
         public static void ConfigureServices(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
+        }
+
+        internal static T GetRequiredService<T>()
+        {
+            return _serviceProvider.GetRequiredService<T>();
         }
 
         private static ElementBuilder Create(string tag)

@@ -5,6 +5,7 @@ using Blazocious.Core.Theme;
 using Bunit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace Blazocious.Test.Helpers
 {
@@ -55,7 +56,19 @@ card:
             Services.AddSingleton<IThemeInitializer, ThemeInitializer>();
 
             // Configure default test styles
-            ConfigureTestStyles(DefaultTestStyles);
+            var method = GetType()
+    .GetMethod("ConfigureTestStyles", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+
+            bool isOverridden = method?.DeclaringType != typeof(BlazociousTestBase);
+
+            if (isOverridden)
+            {
+                ConfigureTestStyles(DefaultTestStyles);
+            }
+
+            var provider = Services.BuildServiceProvider();
+
+            Element.ConfigureServices(provider);
         }
 
         // Helper method to override default styles for specific tests

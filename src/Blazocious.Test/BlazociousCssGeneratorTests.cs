@@ -2,6 +2,7 @@ using Blazocious.Core.Builder;
 using Blazocious.Core.Extensions;
 using Blazocious.Core.Styling;
 using Blazocious.Core.Trackers;
+using Blazocious.Test.Extensions;
 using Blazocious.Test.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
@@ -15,8 +16,8 @@ namespace Blazocious.Test
         public RenderFragment RenderTest() => builder =>
         {
             Element.Div("test-component")
-                .Child(Element.Button("btn btn-primary")
-                    .Text("Click me"))
+                .Child(Element.Button("Click me")
+                    .Class("btn btn-primary"))
                 .Child(Element.Div("card")
                     .Responsive(x =>
                         x.At(Breakpoint.MD, e => e.Class("card-md"))))
@@ -32,7 +33,7 @@ namespace Blazocious.Test
             // Arrange
             var testComponent = new TestComponent();
             var renderFragment = testComponent.RenderTest();
-            var classUsageTracker = Services.GetRequiredService<IClassUsageTracker>();
+            var classUsageTracker = Element.GetRequiredService<IClassUsageTracker>();
 
             // Start collecting
             classUsageTracker.StartCollecting();
@@ -53,8 +54,8 @@ namespace Blazocious.Test
             Assert.Contains("btn-primary", usedClasses);
             Assert.Contains("card", usedClasses);
             
-            Assert.Contains("(min-width: 768px)", mediaQueries.Keys);
-            Assert.Contains("card-md", mediaQueries["(min-width: 768px)"]);
+            Assert.True(mediaQueries.Keys.PartialContainsKey("(min-width: 768px)"));
+            Assert.Contains("card-md", mediaQueries.GetValueByPartialKey("(min-width: 768px)")!);
         }
 
         [Fact]

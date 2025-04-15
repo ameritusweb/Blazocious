@@ -1,0 +1,23 @@
+﻿button-primary:
+  styles:
+    - background-color: '#1f2937'
+    - color: '#ffffff'
+    - padding: '1rem 2rem'
+
+md-class:
+  styles:
+    - background-color: '#1f2937'
+    - color: '#ffffff'
+    - padding: '1rem 2rem'
+
+card:
+  styles:
+    - background-color: '#ffffff'
+    - border-radius: '0.5rem'
+    - padding: '1rem'
+  
+card-md:
+  styles:
+    - background-color: '#ffffff'
+    - border-radius: '0.5rem'
+    - padding: '1rem'

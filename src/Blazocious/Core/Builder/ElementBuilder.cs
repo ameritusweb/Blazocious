@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text;
+using YamlDotNet.Core.Tokens;
 
 namespace Blazocious.Core.Builder;
 
@@ -19,9 +20,14 @@ public partial class ElementBuilder
     private Action<ElementReference>? _onMounted;
     private Action<ElementBuilder>? _customizer;
     private IServiceProvider? _serviceProvider;
+    private string? _mediaQuery;
     private IClassUsageTracker _tracker;
 
     internal Action<RenderTreeBuilder>? BuildOverride { get; init; }
+
+    internal string? MediaQuery => _mediaQuery;
+
+    internal List<string> Classes => _classes;
 
     public IClassUsageTracker Tracker => _tracker;
 
@@ -32,7 +38,26 @@ public partial class ElementBuilder
 
     public ElementBuilder Attr(string name, object? value)
     {
+        if (value != null && name == "class")
+        {
+            Tracker.TrackClass(value.ToString());
+        }
+
         _attributes.Add((name, value));
+        return this;
+    }
+
+    public ElementBuilder Attr(string name, params string[] values)
+    {
+        foreach (var val in values)
+        {
+            if (val != null && name == "class")
+            {
+                Tracker.TrackClass(val);
+            }
+        }
+
+        _attributes.Add((name, string.Join(' ', values)));
         return this;
     }
 
@@ -40,6 +65,11 @@ public partial class ElementBuilder
     {
         foreach (var (name, value) in AttributeParser.Parse(attributeString))
         {
+            if (value != null && name == "class")
+            {
+                Tracker.TrackClass(value.ToString());
+            }
+
             _attributes.Add((name, value));
         }
         return this;
@@ -78,12 +108,6 @@ public partial class ElementBuilder
     public ElementBuilder Customize(Action<ElementBuilder> customizer)
     {
         _customizer = customizer;
-        return this;
-    }
-
-    public ElementBuilder Class(string @class)
-    {
-        _classes.Add(@class);
         return this;
     }
 
@@ -251,6 +275,12 @@ public partial class ElementBuilder
     {
         _serviceProvider = serviceProvider;
         _tracker = serviceProvider.GetRequiredService<IClassUsageTracker>();
+        return this;
+    }
+
+    internal ElementBuilder WithMediaQuery(string mediaQuery)
+    {
+        _mediaQuery = mediaQuery;
         return this;
     }
 
