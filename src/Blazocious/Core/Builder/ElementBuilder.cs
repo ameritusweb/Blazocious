@@ -38,9 +38,14 @@ public partial class ElementBuilder
 
     public ElementBuilder Attr(string name, object? value)
     {
-        if (value != null && name == "class")
+        if (name == "class")
         {
-            Tracker.TrackClass(value.ToString());
+            if (value != null)
+            {
+                Tracker.TrackClass(value.ToString());
+                _classes.Add(value.ToString());
+                return this;
+            }
         }
 
         _attributes.Add((name, value));
@@ -49,12 +54,17 @@ public partial class ElementBuilder
 
     public ElementBuilder Attr(string name, params string[] values)
     {
-        foreach (var val in values)
+        if (name == "class")
         {
-            if (val != null && name == "class")
+            foreach (var val in values)
             {
-                Tracker.TrackClass(val);
+                if (val != null)
+                {
+                    Tracker.TrackClass(val);
+                    _classes.Add(val);
+                }
             }
+            return this;
         }
 
         _attributes.Add((name, string.Join(' ', values)));
@@ -68,6 +78,8 @@ public partial class ElementBuilder
             if (value != null && name == "class")
             {
                 Tracker.TrackClass(value.ToString());
+                _classes.Add(value.ToString());
+                continue;
             }
 
             _attributes.Add((name, value));

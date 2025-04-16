@@ -29,10 +29,10 @@ namespace Blazocious.Core.Builder
                 builder.Class(result.Class);
             }
 
-            if (!string.IsNullOrEmpty(result.Style))
-            {
-                builder.Attr("style", result.Style);
-            }
+            //if (!string.IsNullOrEmpty(result.Style))
+            //{
+            //    builder.Attr("style", result.Style);
+            //}
 
             // Add state styles if available
             if (result.States?.Any() == true)

@@ -142,7 +142,7 @@ components:
             {
                 Element.Div()
                     .YApply("components.card.base")
-                    .YApply("components.card.variants.outlined")
+                    .YApply("components.card", "outlined")
                     .Child(
                         Element.Div()
                             .YApply("components.card.header")
