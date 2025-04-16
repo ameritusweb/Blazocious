@@ -76,25 +76,42 @@ components:
 components:
   card:
     base:
-      class: 'card'
-    parts:
-      header:
-        class: 'card-header'
-      body:
-        class: 'card-body'
+      class: card
+      styles:
+        - background-color: var(--color-primary)
+        - border-radius: var(--radius-md)
+        - padding: 2rem
+
+    header:
+      class: card__header
+      styles:
+        - font-weight: bold
+        - padding: 1rem
+
+    body:
+      class: card__body
+      styles:
+        - font-weight: bold
+        - padding: 1rem
+
+    variants:
+      compact:
+        class: card--compact
+        styles:
+          - padding: 1rem
 ";
             var styles = new BlazociousStyles(yamlContent);
 
             // Act
-            var headerResult = styles.GetStyles("card.header");
-            var bodyResult = styles.GetStyles("card.body");
+            var headerResult = styles.GetStyles("components.card.header");
+            var bodyResult = styles.GetStyles("components.card.body");
 
             // Assert
             Assert.NotNull(headerResult);
-            Assert.Equal("card-header", headerResult.Class);
+            Assert.Equal("card__header", headerResult.Class);
 
             Assert.NotNull(bodyResult);
-            Assert.Equal("card-body", bodyResult.Class);
+            Assert.Equal("card__body", bodyResult.Class);
         }
 
         [Fact]
