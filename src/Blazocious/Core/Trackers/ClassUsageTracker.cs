@@ -9,23 +9,13 @@ namespace Blazocious.Core.Trackers
     public class ClassUsageTracker : IClassUsageTracker
     {
         private readonly HashSet<string> _usedClasses = new();
-        private readonly Dictionary<string, HashSet<string>> _mediaQueries = new();
+        private readonly SortedDictionary<string, HashSet<string>> _mediaQueries;
         private bool _isCollecting;
-
-        public void StartCollecting() => _isCollecting = true;
-
-        public void StopCollecting() => _isCollecting = false;
 
         public ClassUsageTracker()
         {
-        }
-
-        public void TrackClass(string className)
-        {
-            if (_isCollecting && !string.IsNullOrEmpty(className))
-            {
-                _usedClasses.Add(className);
-            }
+            // Use custom comparer to order media queries by breakpoint size
+            _mediaQueries = new SortedDictionary<string, HashSet<string>>(new MediaQueryComparer());
         }
 
         public void TrackMediaQuery(string mediaQuery, string className)
@@ -37,6 +27,18 @@ namespace Blazocious.Core.Trackers
                     _mediaQueries[mediaQuery] = new HashSet<string>();
                 }
                 _mediaQueries[mediaQuery].Add(className);
+            }
+        }
+
+        public void StartCollecting() => _isCollecting = true;
+
+        public void StopCollecting() => _isCollecting = false;
+
+        public void TrackClass(string className)
+        {
+            if (_isCollecting && !string.IsNullOrEmpty(className))
+            {
+                _usedClasses.Add(className);
             }
         }
 

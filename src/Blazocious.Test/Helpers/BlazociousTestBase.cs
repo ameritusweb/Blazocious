@@ -30,6 +30,8 @@ card:
     - border-radius: '0.5rem'
     - padding: '1rem'";
 
+        public new static IServiceProvider Services => Element.ServiceProvider;
+
         protected BlazociousTestBase()
         {
             var configuration = new ConfigurationBuilder()
@@ -39,7 +41,7 @@ card:
 
             var blazociousOptions = configuration.GetSection("Blazocious").Get<BlazociousOptions>();
 
-            Services.AddBlazocious(options =>
+            base.Services.AddBlazocious(options =>
             {
                 options.DefaultThemePath = blazociousOptions.DefaultThemePath;
                 options.DefaultThemeVariant = blazociousOptions.DefaultThemeVariant;
@@ -52,8 +54,8 @@ card:
             });
 
             // Add additional services that might be needed for testing
-            Services.AddScoped<IThemeMerger, ThemeMerger>();
-            Services.AddSingleton<IThemeInitializer, ThemeInitializer>();
+            base.Services.AddScoped<IThemeMerger, ThemeMerger>();
+            base.Services.AddSingleton<IThemeInitializer, ThemeInitializer>();
 
             // Configure default test styles
             var method = GetType()
@@ -66,7 +68,7 @@ card:
                 ConfigureTestStyles(DefaultTestStyles);
             }
 
-            var provider = Services.BuildServiceProvider();
+            var provider = base.Services.BuildServiceProvider();
 
             Element.ConfigureServices(provider);
         }
@@ -74,7 +76,7 @@ card:
         // Helper method to override default styles for specific tests
         protected virtual void ConfigureTestStyles(string yamlContent)
         {
-            Services.Configure<BlazociousStylesOptions>(options =>
+            base.Services.Configure<BlazociousStylesOptions>(options =>
             {
                 options.YamlContent = yamlContent;
             });

@@ -7,6 +7,7 @@ using Blazocious.Test.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System.Reflection;
 
 namespace Blazocious.Test
@@ -59,21 +60,6 @@ namespace Blazocious.Test
         }
 
         [Fact]
-        public async Task GenerateFromAssembly_WithInvalidStylesPath_ShouldThrowException()
-        {
-            // Arrange
-            Services.Configure<BlazociousOptions>(options =>
-            {
-                options.DefaultStylesPath = null;
-            });
-
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => CssGenerator.GenerateFromAssembly()
-            );
-        }
-
-        [Fact]
         public async Task GenerateFromAssembly_ShouldOrderMediaQueriesCorrectly()
         {
             // Arrange
@@ -112,8 +98,15 @@ namespace Blazocious.Test
             renderFragment(new RenderTreeBuilder());
             classUsageTracker.StopCollecting();
 
-            var blazociousStyles = Services.GetRequiredService<BlazociousStyles>();
-            var css = GenerateCssForTest(classUsageTracker, blazociousStyles);
+            await CssGenerator.GenerateFromAssembly();
+
+            // Get the generated CSS from the output file
+            var options = Element.Options;
+            var outputPath = options.CssOutputPath;
+
+            FileInfo outputInfo = new FileInfo(outputPath);
+
+            var css = await File.ReadAllTextAsync(outputInfo.FullName);
 
             // Assert
             Assert.Contains("{", css);

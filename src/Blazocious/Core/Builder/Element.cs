@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Blazocious.Core.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +12,10 @@ namespace Blazocious.Core.Builder
     public static class Element
     {
         private static IServiceProvider? _serviceProvider;
+
+        internal static IServiceProvider ServiceProvider => _serviceProvider ?? throw new InvalidOperationException("Service provider not configured");
+
+        internal static BlazociousOptions Options { get; set; }
 
         public static void ConfigureServices(IServiceProvider serviceProvider)
         {

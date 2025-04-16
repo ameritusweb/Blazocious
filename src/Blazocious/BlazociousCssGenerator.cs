@@ -25,8 +25,15 @@ namespace Blazocious
             var services = new ServiceCollection();
             services.AddBlazocious(); // This configures BlazociousOptions from appsettings.json
 
-            var serviceProvider = services.BuildServiceProvider();
+            var serviceProvider = services.BuildServiceProvider() as IServiceProvider;
+
             var options = serviceProvider.GetRequiredService<IOptions<BlazociousOptions>>().Value;
+
+            if (serviceProvider != Element.ServiceProvider)
+            {
+                serviceProvider = Element.ServiceProvider;
+                Element.Options = options;
+            }
 
             blazociousStyles = serviceProvider.GetRequiredService<BlazociousStyles>();
 
@@ -75,12 +82,18 @@ namespace Blazocious
             );
 
             // Save to file - output path would be configured in appsettings.json
-            var outputPath = Path.Combine(
-                Path.GetDirectoryName(options.DefaultStylesPath),
-                options.CssOutputPath
-            );
+            var outputPath = options.CssOutputPath;
 
-            await File.WriteAllTextAsync(outputPath, css);
+            if (!string.IsNullOrWhiteSpace(outputPath))
+            {
+                var fileInfo = new FileInfo(outputPath);
+                if (!Directory.Exists(outputPath))
+                {
+                    Directory.CreateDirectory(fileInfo.Directory!.FullName);
+                }
+
+                await File.WriteAllTextAsync(fileInfo.FullName, css);
+            }
 
             // Clear the tracker for next run
             classUsageTracker.Clear();

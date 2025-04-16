@@ -76,8 +76,15 @@ namespace Blazocious.Core.Styling
                 var componentName = parts[0];
                 var elementName = parts.Length > 1 ? parts[1] : null;
 
-                if (!_components.TryGetValue(elementName, out var component))
+                if (elementName == null)
+                {
                     return new StyleResult();
+                }
+
+                if (!_components.TryGetValue(elementName, out var component))
+                {
+                    return new StyleResult();
+                }
 
                 var classes = new List<string>();
                 var styles = new List<StylePropertyDefinition>();
