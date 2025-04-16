@@ -36,7 +36,6 @@ namespace Blazocious.Core.Styling
         internal BlazociousStyles(string yamlContent)
         {
             var parser = new YamlParser();
-
             (_tokens, _components, _streetStyles) = parser.Parse(yamlContent);
         }
 
@@ -62,7 +61,9 @@ namespace Blazocious.Core.Styling
                     return new StyleResult
                     {
                         Class = streetStyle.Class,
-                        Style = BuildStyleString(streetStyle.Styles)
+                        Style = BuildStyleString(streetStyle.Styles),
+                        States = streetStyle.States,
+                        MediaQueries = streetStyle.MediaQueries
                     };
                 }
 
@@ -84,38 +85,33 @@ namespace Blazocious.Core.Styling
 
                 var classes = new List<string>();
                 var styles = new List<StylePropertyDefinition>();
+                var states = new Dictionary<string, Dictionary<string, string>>();
+                var mediaQueries = new Dictionary<string, Dictionary<string, string>>();
 
                 // Add base component styles
                 if (component.Base != null)
                 {
-                    if (!string.IsNullOrEmpty(component.Base.Class))
-                        classes.Add(component.Base.Class);
-                    if (component.Base.Styles?.Any() == true)
-                        styles.AddRange(component.Base.Styles);
+                    AddStyleDefinition(component.Base, classes, styles, states, mediaQueries);
                 }
 
                 // Add element styles for BEM
                 if (elementName != null && component.Parts?.TryGetValue(elementName, out var elementDef) == true)
                 {
-                    if (!string.IsNullOrEmpty(elementDef.Class))
-                        classes.Add(elementDef.Class);
-                    if (elementDef.Styles?.Any() == true)
-                        styles.AddRange(elementDef.Styles);
+                    AddStyleDefinition(elementDef, classes, styles, states, mediaQueries);
                 }
 
                 // Add variant styles
                 if (variant != null && component.Variants?.TryGetValue(variant, out var variantDef) == true)
                 {
-                    if (!string.IsNullOrEmpty(variantDef.Class))
-                        classes.Add(variantDef.Class);
-                    if (variantDef.Styles?.Any() == true)
-                        styles.AddRange(variantDef.Styles);
+                    AddStyleDefinition(variantDef, classes, styles, states, mediaQueries);
                 }
 
                 return new StyleResult
                 {
                     Class = classes.Any() ? string.Join(" ", classes) : null,
-                    Style = BuildStyleString(styles)
+                    Style = BuildStyleString(styles),
+                    States = states.Any() ? states : null,
+                    MediaQueries = mediaQueries.Any() ? mediaQueries : null
                 };
             });
         }
@@ -136,19 +132,6 @@ namespace Blazocious.Core.Styling
                     return (parts[0].Trim(), parts[1].Trim());
                 })
                 .ToList();
-        }
-
-        private StyleResult CreateStyleResult(ComponentBaseDefinition def)
-        {
-            var styles = def.Styles?.Select(s => $"{s.Property}: {ResolveTokens(s.Value)}");
-
-            return new StyleResult
-            {
-                Class = def.Class,
-                Style = styles?.Any() == true ? string.Join("; ", styles) : null,
-                States = def.States,
-                MediaQueries = def.MediaQueries
-            };
         }
 
         private void AddStyleDefinition(
@@ -172,7 +155,18 @@ namespace Blazocious.Core.Styling
             {
                 foreach (var (state, props) in def.States)
                 {
-                    states[state] = props;
+                    // Merge state properties if the state already exists
+                    if (states.TryGetValue(state, out var existingProps))
+                    {
+                        foreach (var prop in props)
+                        {
+                            existingProps[prop.Key] = prop.Value;
+                        }
+                    }
+                    else
+                    {
+                        states[state] = new Dictionary<string, string>(props);
+                    }
                 }
             }
 
@@ -180,7 +174,18 @@ namespace Blazocious.Core.Styling
             {
                 foreach (var (query, props) in def.MediaQueries)
                 {
-                    mediaQueries[query] = props;
+                    // Merge media query properties if the query already exists
+                    if (mediaQueries.TryGetValue(query, out var existingProps))
+                    {
+                        foreach (var prop in props)
+                        {
+                            existingProps[prop.Key] = prop.Value;
+                        }
+                    }
+                    else
+                    {
+                        mediaQueries[query] = new Dictionary<string, string>(props);
+                    }
                 }
             }
         }
