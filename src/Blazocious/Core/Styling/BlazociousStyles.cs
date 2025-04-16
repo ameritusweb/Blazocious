@@ -1,11 +1,6 @@
 ﻿using Blazocious.Core.YAML.Models;
 using Blazocious.Core.YAML;
 using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 
 namespace Blazocious.Core.Styling
@@ -73,15 +68,16 @@ namespace Blazocious.Core.Styling
 
                 // Then check if it's a BEM component
                 var parts = path.Split('.');
+
+                if (parts[0] == "components")
+                {
+                    parts = parts.Skip(1).ToArray();
+                }
+
                 var componentName = parts[0];
                 var elementName = parts.Length > 1 ? parts[1] : null;
 
-                if (elementName == null)
-                {
-                    return new StyleResult();
-                }
-
-                if (!_components.TryGetValue(elementName, out var component))
+                if (!_components.TryGetValue(componentName, out var component))
                 {
                     return new StyleResult();
                 }

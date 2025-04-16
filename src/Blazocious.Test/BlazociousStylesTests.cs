@@ -108,10 +108,10 @@ components:
 
             // Assert
             Assert.NotNull(headerResult);
-            Assert.Equal("card__header", headerResult.Class);
+            Assert.Equal("card card__header", headerResult.Class);
 
             Assert.NotNull(bodyResult);
-            Assert.Equal("card__body", bodyResult.Class);
+            Assert.Equal("card card__body", bodyResult.Class);
         }
 
         [Fact]

@@ -7,6 +7,13 @@ namespace Blazocious.Core.YAML
 {
     public class YamlParser
     {
+        private static readonly HashSet<string> ReservedComponentKeys = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "base",
+            "variants",
+            "description"
+        };
+
         private readonly IDeserializer _deserializer;
         private readonly ISerializer _serializer;
 
@@ -89,28 +96,34 @@ namespace Blazocious.Core.YAML
                 var compNode = (YamlMappingNode)component.Value;
                 var definition = new ComponentDefinition { Name = name };
 
-                foreach (var part in compNode.Children)
-                {
-                    var partKey = ((YamlScalarNode)part.Key).Value;
-                    var partNode = (YamlMappingNode)part.Value;
+                // Track parts for this component
+                var parts = new Dictionary<string, ComponentBaseDefinition>();
 
-                    switch (partKey.ToLowerInvariant())
+                foreach (var element in compNode.Children)
+                {
+                    var elementKey = ((YamlScalarNode)element.Key).Value;
+                    var elementNode = (YamlMappingNode)element.Value;
+
+                    switch (elementKey.ToLowerInvariant())
                     {
                         case "base":
-                            definition.Base = ParseComponentBase(partNode);
-                            break;
-                        case "parts":
-                            definition.Parts = ParseComponentParts((YamlMappingNode)part.Value);
+                            definition.Base = ParseComponentBase(elementNode);
                             break;
                         case "variants":
-                            definition.Variants = ParseComponentParts((YamlMappingNode)part.Value);
+                            definition.Variants = ParseComponentParts((YamlMappingNode)element.Value);
                             break;
                         case "description":
-                            definition.Description = ((YamlScalarNode)part.Value).Value;
+                            definition.Description = ((YamlScalarNode)element.Value).Value;
+                            break;
+                        default:
+                            // Any non-reserved key at this level is treated as a part
+                            parts[elementKey] = ParseComponentBase(elementNode);
                             break;
                     }
                 }
 
+                // Add parts to the definition
+                definition.Parts = parts;
                 components[name] = definition;
             }
 
