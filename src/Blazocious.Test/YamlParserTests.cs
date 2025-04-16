@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YamlDotNet.Core;
 
 namespace Blazocious.Test
 {
@@ -53,11 +54,10 @@ components:
   card:
     base:
       class: 'card'
-    parts:
-      header:
-        class: 'card-header'
-      body:
-        class: 'card-body'
+    header:
+      class: 'card-header'
+    body:
+      class: 'card-body'
 ";
 
             // Act
@@ -251,8 +251,8 @@ tokens:
 ";
 
             // Act & Assert
-            var exception = Assert.Throws<YamlDotNet.Core.YamlException>(() => yamlParser.Parse(yamlContent));
-            Assert.Contains("incorrect", exception.Message);
+            var exception = Assert.Throws<SemanticErrorException>(() => yamlParser.Parse(yamlContent));
+            Assert.Contains("parsing", exception.Message);
         }
     }
 }
