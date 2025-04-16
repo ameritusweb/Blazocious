@@ -1,10 +1,11 @@
 ﻿using Blazocious.Core.Builder;
 using Blazocious.Test.Extensions;
+using Blazocious.Test.Helpers;
 using Bunit;
 
 namespace Blazocious.Test
 {
-    public class ElementBuilderTests : TestContext
+    public class ElementBuilderTests : BlazociousTestBase
     {
         [Fact]
         public void ElementBuilder_CreateDiv_ShouldRenderCorrectly()
@@ -61,9 +62,9 @@ namespace Blazocious.Test
             var h1 = div.Children[0];
             var p = div.Children[1];
 
-            Assert.Equal("h1", h1.TagName);
+            Assert.Equal("H1", h1.TagName);
             Assert.Equal("Title", h1.TextContent);
-            Assert.Equal("p", p.TagName);
+            Assert.Equal("P", p.TagName);
             Assert.Equal("Content", p.TextContent);
         }
 
@@ -127,7 +128,7 @@ namespace Blazocious.Test
             });
 
             // Assert
-            var ul = cut.Find("ul") as IRenderedFragment;
+            var ul = cut.Find("ul");
             var listItems = ul.FindAll("li");
 
             Assert.Equal(3, listItems.Count);
@@ -150,7 +151,7 @@ namespace Blazocious.Test
             });
 
             // Assert
-            var div = cut.Find("div").Children.FirstOrDefault(x => x.TagName == "h1");
+            var div = cut.Find("div");
             var h1 = div.FindFirst("h1");
             var p = div.FindFirst("p");
             var button = div.FindFirst("button");
